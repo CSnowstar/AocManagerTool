@@ -1,0 +1,109 @@
+﻿<Window x:Class="sceTrans"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="clr-namespace:AocManagerTool"
+    Title="帝国时代场景翻译器" Height="600" Width="600" Icon="resource\logo.ico">
+    <Window.Resources>
+        <local:IsEnabledConverter x:Key="cvt"></local:IsEnabledConverter>
+    </Window.Resources>
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="auto"></RowDefinition>
+            <RowDefinition Height="auto"></RowDefinition>
+            <RowDefinition></RowDefinition>
+            <RowDefinition Height="auto"></RowDefinition>
+        </Grid.RowDefinitions>
+        <Menu x:Name="mnu" Grid.Row="0" IsEnabled="False">
+            <MenuItem Header="常用功能">
+                <MenuItem x:Name="mnuCopyAll" Click="mnuCopyAll_Click">
+                    <MenuItem.Header>
+                        <TextBlock><Bold FontSize="14">拷贝所有</Bold>原文内容到译文</TextBlock>
+                    </MenuItem.Header>
+                </MenuItem>
+                <MenuItem x:Name="mnuHide" IsCheckable="True" Checked="mnuHide_Checked" Unchecked="mnuHide_Unchecked">
+                    <MenuItem.Header>
+                        <TextBlock><Bold FontSize="14">隐藏</Bold>所有不是任务目标的触发事件的名称和描述</TextBlock>
+                    </MenuItem.Header>
+                </MenuItem>
+                <MenuItem x:Name="mnuBlankAll" Click="mnuBlankAll_Click">
+                    <MenuItem.Header>
+                        <TextBlock>将所有触发事件名称<Bold FontSize="14">设为空白</Bold></TextBlock>
+                    </MenuItem.Header>
+                </MenuItem>
+                <MenuItem x:Name="mnuNumberAll" Click="mnuNumberAll_Click">
+                    <MenuItem.Header>
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock>将所有触发事件名称<Bold FontSize="14">编号</Bold>，前缀为：</TextBlock>
+                            <TextBox x:Name="txtPrefix" Padding="5,2" Width="auto" xml:space="preserve">触发事件 </TextBox>
+                        </StackPanel>
+                    </MenuItem.Header>
+                </MenuItem>
+                <MenuItem x:Name="mnuExport" Click="mnuExport_Click">
+                    <MenuItem.Header>
+                        <TextBlock>译文<Bold FontSize="14">导出</Bold>到文本文档</TextBlock>
+                    </MenuItem.Header>
+                </MenuItem>
+                <MenuItem x:Name="mnuImport" Click="mnuImport_Click">
+                    <MenuItem.Header>
+                        <TextBlock>从文本文档<Bold FontSize="14">导入</Bold>译文</TextBlock>
+                    </MenuItem.Header>
+                </MenuItem>
+            </MenuItem>
+        </Menu>
+        <Grid Grid.Row="1">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="auto"></ColumnDefinition>
+                <ColumnDefinition Width="auto"></ColumnDefinition>
+                <ColumnDefinition Width="auto"></ColumnDefinition>
+                <ColumnDefinition></ColumnDefinition>
+            </Grid.ColumnDefinitions>
+            <Button x:Name="btnOpen" Margin="5" Padding="10,5" Click="btnOpen_Click">载入场景</Button>
+            <Button x:Name="btnSave" Grid.Column="1" Margin="5" Padding="10,5" IsEnabled="False" Click="btnSave_Click">保存场景</Button>
+            <Button x:Name="btnSaveAs" Grid.Column="2" Margin="5" Padding="10,5" IsEnabled="False" Click="btnSaveAs_Click">场景另存为</Button>
+            <Button x:Name="btnExit" Grid.Column="3" Margin="5" Padding="10,5" HorizontalAlignment="Right" Click="btnExit_Click">退出</Button>
+        </Grid>
+        <Grid Grid.Row="2">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="auto"></RowDefinition>
+                <RowDefinition Height="2*"></RowDefinition>
+                <RowDefinition Height="auto"></RowDefinition>
+                <RowDefinition Height="*"></RowDefinition>
+                <RowDefinition Height="auto"></RowDefinition>
+                <RowDefinition Height="auto"></RowDefinition>
+            </Grid.RowDefinitions>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="auto"></ColumnDefinition>
+                <ColumnDefinition Width="*"></ColumnDefinition>
+                <ColumnDefinition Width="2*"></ColumnDefinition>
+            </Grid.ColumnDefinitions>
+            <TextBlock>可翻译内容：</TextBlock>
+            <TextBlock Grid.Column="2">原文：</TextBlock>
+            <TreeView x:Name="tvw1" Grid.Row="1" Grid.ColumnSpan="2" Grid.RowSpan="3" VirtualizingStackPanel.IsVirtualizing="True">
+                <TreeView.ItemTemplate>
+                    <HierarchicalDataTemplate ItemsSource="{Binding Path=Children}">
+                        <TextBlock Text="{Binding Path=Display}">
+                        </TextBlock>
+                    </HierarchicalDataTemplate>
+                </TreeView.ItemTemplate>
+                <TreeView.ItemContainerStyle>
+                    <Style TargetType="{x:Type TreeViewItem}">
+                        <Setter Property="IsExpanded" Value="True"></Setter>
+                        <Setter Property="Visibility" Value="{Binding Path=Visibility}"></Setter>
+                    </Style>
+                </TreeView.ItemContainerStyle>
+            </TreeView>
+            <TextBox Grid.Row="1" Grid.Column="2" IsReadOnly="True" TextWrapping="Wrap" VerticalScrollBarVisibility="Auto" Text="{Binding ElementName=tvw1, Path=SelectedItem.Source}"></TextBox>
+            <TextBlock Grid.Row="2" Grid.Column="2">译文：</TextBlock>
+            <TextBox x:Name="txtDst" Grid.Row="3" Grid.Column="2" Grid.RowSpan="3" TextWrapping="Wrap" AcceptsReturn="True" VerticalScrollBarVisibility="Auto" IsEnabled="{Binding ElementName=tvw1,Path=SelectedItem.Type,Converter={StaticResource cvt}}" Text="{Binding ElementName=tvw1, Path=SelectedItem.Dest,Mode=TwoWay}"></TextBox>
+            <TextBlock Grid.Row="4">原文编码：</TextBlock>
+            <ComboBox x:Name="cboSrc" Grid.Row="4" Grid.Column="1"></ComboBox>
+            <TextBlock Grid.Row="5">译文编码：</TextBlock>
+            <ComboBox x:Name="cboDst" Grid.Row="5" Grid.Column="1"></ComboBox>
+        </Grid>
+        <StatusBar Grid.Row="3">
+            <StatusBarItem>
+                <TextBlock x:Name="txbStatus"></TextBlock>
+            </StatusBarItem>
+        </StatusBar>
+    </Grid>
+</Window>

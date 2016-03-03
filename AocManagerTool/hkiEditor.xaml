@@ -1,0 +1,40 @@
+﻿<Window x:Class="hkiEditor"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    Title="帝国时代热键编辑器" Height="400" Width="600" Icon="logo.ico">
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition></RowDefinition>
+            <RowDefinition Height="30"></RowDefinition>
+        </Grid.RowDefinitions>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition></ColumnDefinition>
+            <ColumnDefinition></ColumnDefinition>
+            <ColumnDefinition></ColumnDefinition>
+            <ColumnDefinition></ColumnDefinition>
+            <ColumnDefinition></ColumnDefinition>
+            <ColumnDefinition></ColumnDefinition>
+            <ColumnDefinition></ColumnDefinition>
+            <ColumnDefinition></ColumnDefinition>
+        </Grid.ColumnDefinitions>
+        <ListBox x:Name="lst1" Grid.ColumnSpan="4" FontSize="14" SelectionChanged="lst1_SelectionChanged">
+            
+        </ListBox>
+        <ListView x:Name="lvw1" Grid.Column="4" Grid.ColumnSpan="4" SelectionChanged="lvw1_SelectionChanged" PreviewKeyDown="cmbKey_KeyDown">
+            <ListView.View>
+                <GridView>
+                    <GridViewColumn DisplayMemberBinding="{Binding Path=Name}" Width="140">功能</GridViewColumn>
+                    <GridViewColumn DisplayMemberBinding="{Binding Path=Key}" Width="140">快捷键</GridViewColumn>
+                </GridView>
+            </ListView.View>
+        </ListView>
+        <Button x:Name="btnOpen" Grid.Column="0" Grid.Row="1" Margin="3" Click="btnOpen_Click">打开</Button>
+        <Button x:Name="btnSave" Grid.Row="1" Grid.Column="1" Margin="3" IsEnabled="False" Click="btnSave_Click">保存</Button>
+        <Button x:Name="btnSaveAs" Grid.Row="1" Grid.Column="2" Margin="3" IsEnabled="False" Click="btnSaveAs_Click">另存为</Button>
+        <Button x:Name="btnExit" Grid.Row="1" Grid.Column="3" Margin="3" Click="btnExit_Click">退出</Button>
+        <CheckBox x:Name="chkCtrl" Grid.Row="1" Grid.Column="4" VerticalAlignment="Center" Click="chks_Click">Ctrl</CheckBox>
+        <CheckBox x:Name="chkShift" Grid.Row="1" Grid.Column="5" VerticalAlignment="Center" Click="chks_Click">Shift</CheckBox>
+        <CheckBox x:Name="chkAlt" Grid.Row="1" Grid.Column="6" VerticalAlignment="Center" Click="chks_Click">Alt</CheckBox>
+        <ComboBox x:Name="cmbKey" Grid.Row="1" Grid.Column="7" IsTextSearchEnabled="False" PreviewKeyDown="cmbKey_KeyDown"></ComboBox>
+    </Grid>
+</Window>

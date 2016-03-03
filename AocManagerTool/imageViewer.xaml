@@ -1,0 +1,8 @@
+﻿<Window x:Class="imageViewer"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:gif="http://wpfanimatedgif.codeplex.com"
+    Title="imageViewer" 
+    SizeToContent="WidthAndHeight" WindowStyle="None" ResizeMode="NoResize" ShowInTaskbar="False" WindowStartupLocation="CenterOwner" Loaded="Window_Loaded" AllowsTransparency="True" Background="Transparent">
+        <Image x:Name="img" MouseDown="img_MouseDown"></Image>
+</Window>

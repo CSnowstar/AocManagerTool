@@ -1,0 +1,414 @@
+﻿<Application x:Class="Application"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:ni="clr-namespace:System.Net.NetworkInformation;assembly=System"
+    Startup="Application_Startup" Exit="Application_Exit" >
+    <!--DispatcherUnhandledException="Application_DispatcherUnhandledException"-->
+    <Application.Resources>
+        <ni:Ping x:Key="pinPing" PingCompleted="gPing_PingComplete"></ni:Ping>
+        <Color x:Key="clrWndBackground1">#0076da</Color>
+        <Color x:Key="clrWndBackground2">#5799dc</Color>
+        <Color x:Key="clrBtnStartGameMore1">#51cd2b</Color>
+        <Color x:Key="clrBtnStartGameMore2">#41ab20</Color>
+        <SolidColorBrush x:Key="bruTabBackground">#dbe7f6</SolidColorBrush>
+        <SolidColorBrush x:Key="bruTabSelected">#0377ea</SolidColorBrush>
+        <SolidColorBrush x:Key="bruTabNotSelected">#408fdb</SolidColorBrush>
+        <SolidColorBrush x:Key="bruTabHover">#9ac2ec</SolidColorBrush>
+        <SolidColorBrush x:Key="bruTabPressed">#21649d</SolidColorBrush>
+        <SolidColorBrush x:Key="bruBtnBackground">#facd89</SolidColorBrush>
+        <SolidColorBrush x:Key="bruBtnHoverBackground">#ffe9c8</SolidColorBrush>
+        <SolidColorBrush x:Key="bruBtnPressedBackground">#ffba52</SolidColorBrush>
+        <SolidColorBrush x:Key="bruBtnText">#895b15</SolidColorBrush>
+        <SolidColorBrush x:Key="bruTxbVariable">#bb0000</SolidColorBrush>
+        <SolidColorBrush x:Key="bruBtnOK">#d88f22</SolidColorBrush>
+        <SolidColorBrush x:Key="bruBtnStartGame">#51cd2b</SolidColorBrush>
+        <SolidColorBrush x:Key="bruBtnStartGameHover">#41ab20</SolidColorBrush>
+        <SolidColorBrush x:Key="bruBtnStartGameMore">#51bc31</SolidColorBrush>
+        <SolidColorBrush x:Key="bruBtnStartGameMoreStroke">#b1ef38</SolidColorBrush>
+        <SolidColorBrush x:Key="bruBtnStartGameListHover">#79d143</SolidColorBrush>
+        <ToolTip x:Key="ttpPortForwarding">
+            <TextBlock TextWrapping="Wrap" MaxWidth="200">联机优化可以使多人游戏显著减少卡顿问题，但是会导致不支持IPX、局域网联机游戏，如需开启需要参与玩家全部开启，请慎重使用。</TextBlock>
+        </ToolTip>
+        <ToolTip x:Key="ttpMultiPlayer">
+            <TextBlock MaxWidth="200" TextWrapping="Wrap" >帝国时代2支持局域网对战、联机平台对战、IP联机对战。局域网即家中路由器环境或网吧环境，进入帝国时代后，点击多人游戏，在右上角联机类别中选择最后一个“局域网络 TCP/IP联机”即可创建或加入游戏。联机平台对战即使用腾讯对战平台、浩方对战平台等第三方平台提供中间媒介，进而利用平台启动游戏，与任何地方的人联机，这是最普遍的联机方式。IP联机对战是提供给拥有公网IP，由于各种原因无法使用平台的玩家使用的，只需电脑联网即可，但是速度较慢。</TextBlock>
+        </ToolTip>
+        <Style TargetType="{x:Type Window }" x:Key="wndShadowStyle">
+            <Setter Property="Template" >
+                <Setter.Value>
+                    <ControlTemplate TargetType="{x:Type Window }">
+                        <Grid Margin="5">
+                            <Rectangle Fill="{DynamicResource {x:Static SystemColors.WindowBrushKey }}">
+                                <Rectangle.Effect>
+                                    <DropShadowEffect BlurRadius="10" Color="DarkBlue"  ></DropShadowEffect>
+                                </Rectangle.Effect>
+                            </Rectangle>
+                            <Border Background="{TemplateBinding Background }">
+                                <ContentPresenter></ContentPresenter>
+                            </Border>
+                        </Grid>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+        <Style TargetType="{x:Type Button}" x:Key="btnStartGameMoreStyle">
+            <Setter Property="Template" >
+                <Setter.Value>
+                    <ControlTemplate TargetType="{x:Type Button}">
+                        <Border Background="{TemplateBinding Background}" Width="15" Height="50" HorizontalAlignment="{TemplateBinding HorizontalAlignment}" Margin="0">
+                            <Path Stroke="{StaticResource bruBtnStartGameMoreStroke}" Data="M 3 22 L 8 27 L 13 22"></Path>
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+        <Style TargetType="{x:Type Button}" x:Key="btnMinimizeStyle">
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="{x:Type Button}">
+                        <Image x:Name="img" Source="resource\最小化（普通）.png" Width="30" Height="27"></Image>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Trigger.Setters>
+                                    <Setter TargetName="img" Property="Source" Value="resource\最小化（悬停）.png"></Setter>
+                                </Trigger.Setters>
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Trigger.Setters>
+                                    <Setter TargetName="img" Property="Source" Value="resource\最小化（单击）.png"></Setter>
+                                </Trigger.Setters>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+        <Style TargetType="{x:Type Button}" x:Key="btnCloseStyle">
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="{x:Type Button}">
+                        <Image x:Name="img" Source="resource\关闭（普通）.png" Width="30" Height="27"></Image>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Trigger.Setters>
+                                    <Setter TargetName="img" Property="Source" Value="resource\关闭（悬停）.png"></Setter>
+                                </Trigger.Setters>
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Trigger.Setters>
+                                    <Setter TargetName="img" Property="Source" Value="resource\关闭（单击）.png"></Setter>
+                                </Trigger.Setters>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+        <Style TargetType="{x:Type TabControl}" x:Key="tabStyle">
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="{x:Type TabControl }">
+                        <Grid KeyboardNavigation.TabNavigation="Local">
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="*" />
+                            </Grid.RowDefinitions>
+                            <Border Grid.Row="0" Background="{StaticResource bruTabBackground}">
+                                <TabPanel x:Name="HeaderPanel" IsItemsHost="True" HorizontalAlignment="Center"></TabPanel>
+                            </Border>
+                            <Border x:Name="Border" Grid.Row="1" BorderThickness="1" CornerRadius="2" KeyboardNavigation.TabNavigation="Local" KeyboardNavigation.DirectionalNavigation="Contained" KeyboardNavigation.TabIndex="2">
+                                <ContentPresenter x:Name="PART_SelectedContentHost" ContentSource="SelectedContent"></ContentPresenter>
+                            </Border>
+                        </Grid>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+        <Style TargetType="{x:Type TabItem }" x:Key="tabItemStyle">
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="{x:Type TabItem }">
+                        <Border Margin="25,10" Background="Transparent">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition></ColumnDefinition>
+                                    <ColumnDefinition></ColumnDefinition>
+                                </Grid.ColumnDefinitions>
+                                <Ellipse x:Name="elli" Grid.Column="0" Width="22" Height="22" StrokeThickness="1" Stroke="{StaticResource bruTabNotSelected}"></Ellipse>
+                                <TextBlock x:Name="txb" Grid.Column="1" Text="{TemplateBinding Property=Header}" FontSize="14pt" VerticalAlignment="Center" Margin="8,0,0,0" Foreground="{StaticResource bruTabNotSelected}"></TextBlock>
+                            </Grid>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="elli" Property="Fill" Value="{StaticResource bruTabHover}"></Setter>
+                                <Setter TargetName="elli" Property="Stroke" Value="{StaticResource bruTabHover}"></Setter>
+                                <Setter TargetName="txb" Property="Foreground" Value="{StaticResource bruTabHover}"></Setter>
+                            </Trigger>
+                            <Trigger Property="IsSelected" Value="True">
+                                <Setter TargetName="elli" Property="Fill" Value="{StaticResource bruTabSelected}"></Setter>
+                                <Setter TargetName="elli" Property="Stroke" Value="{StaticResource bruTabSelected}"></Setter>
+                                <Setter TargetName="txb" Property="Foreground" Value="{StaticResource bruTabSelected}"></Setter>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+        <Style TargetType="{x:Type TabControl}" x:Key="tab2Style">
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="{x:Type TabControl }">
+                        <Grid KeyboardNavigation.TabNavigation="Local">
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="*" />
+                            </Grid.RowDefinitions>
+                            <TabPanel x:Name="HeaderPanel" Grid.Row="0" IsItemsHost="True" Background="Transparent"></TabPanel>
+                            <ScrollViewer Grid.Row="1" BorderThickness="1" KeyboardNavigation.TabNavigation="Local" KeyboardNavigation.DirectionalNavigation="Contained" KeyboardNavigation.TabIndex="2" Padding="20,10,0,0" VerticalScrollBarVisibility="Auto">
+                                <ContentPresenter x:Name="PART_SelectedContentHost" ContentSource="SelectedContent"></ContentPresenter>
+                            </ScrollViewer>
+                        </Grid>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+        <Style TargetType="{x:Type TabItem }" x:Key="tabItem2Style">
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="{x:Type TabItem }">
+                        <Border Margin="8,5" Background="Transparent">
+                            <TextBlock x:Name="txb" Text="{TemplateBinding Property=Header}" FontSize="18" VerticalAlignment="Center" Margin="8,0"></TextBlock>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="txb" Property="FontWeight" Value="Bold"></Setter>
+                            </Trigger>
+                            <Trigger Property="IsSelected" Value="True">
+                                <Setter TargetName="txb" Property="FontWeight" Value="Bold"></Setter>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+        <Style TargetType="{x:Type TextBlock}" x:Key="txbHeaderStyle">
+            <Setter Property="FontWeight" Value="Bold"></Setter>
+            <Setter Property="FontSize" Value="16"></Setter>
+            <Setter Property="Margin" Value="0,15,0,0"></Setter>
+        </Style>
+        <Style TargetType="{x:Type TextBlock}" x:Key="txbContentStyle">
+            <Setter Property="TextWrapping" Value="Wrap"></Setter>
+            <Setter Property="TextAlignment" Value="Center"></Setter>
+            <Setter Property="HorizontalAlignment" Value="Center"></Setter>
+            <Setter Property="FontSize" Value="14"></Setter>
+            <Setter Property="Margin" Value="0,3"></Setter>
+        </Style>
+        <Style TargetType="{x:Type TextBlock}" x:Key="txbVariableStyle">
+            <Setter Property="FontSize" Value="14"></Setter>
+            <Setter Property="Margin" Value="0,3"></Setter>
+            <Setter Property="Foreground" Value="{StaticResource bruTxbVariable}"></Setter>
+        </Style>
+        <Style TargetType="{x:Type Button}" x:Key="btnSettingStyle">
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="{x:Type Button}">
+                        <Border x:Name="bdr" CornerRadius="10" Background="{StaticResource bruBtnBackground}" Padding="15,10" Margin="10,5">
+                            <ContentPresenter TextBlock.FontSize="18" TextBlock.Foreground="{StaticResource bruBtnText}"></ContentPresenter>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="bdr" Property="Background" Value="{StaticResource bruBtnHoverBackground}"></Setter>
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="bdr" Property="Background" Value="{StaticResource bruBtnPressedBackground}"></Setter>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+        <Style TargetType="{x:Type RadioButton}" x:Key="radSettingStyle">
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="{x:Type RadioButton}">
+                        <Border x:Name="bdr" CornerRadius="10" Background="{StaticResource bruBtnBackground}" Padding="15,10" Margin="10,5">
+                            <ContentPresenter TextBlock.FontSize="18" TextBlock.Foreground="{StaticResource bruBtnText}" ></ContentPresenter>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="bdr" Property="Background" Value="{StaticResource bruBtnHoverBackground}"></Setter>
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="bdr" Property="Background" Value="{StaticResource bruBtnPressedBackground}"></Setter>
+                            </Trigger>
+                            <Trigger Property="IsChecked" Value="True">
+                                <Setter TargetName="bdr" Property="Background" Value="{StaticResource bruBtnPressedBackground}"></Setter>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+        <Style TargetType="{x:Type Button}" x:Key="btnStartGameListStyle">
+            <Setter Property="Foreground" Value="White"></Setter>
+            <Setter Property="TextBlock.FontSize" Value="16"></Setter>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="{x:Type Button}">
+                        <Border x:Name="bdr" Background="{StaticResource bruBtnStartGameMore}" Padding="10" Width="180" BorderThickness="2" BorderBrush="{StaticResource bruBtnStartGameMore}">
+                            <!--<ContentPresenter VerticalAlignment="{TemplateBinding VerticalContentAlignment}" HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"></ContentPresenter>-->
+                            <TextBlock TextTrimming="WordEllipsis" Text="{TemplateBinding Content}" VerticalAlignment="{TemplateBinding VerticalContentAlignment}" HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"></TextBlock>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="bdr" Property="Background" Value="{StaticResource bruBtnStartGameListHover}"></Setter>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+        <Style TargetType="{x:Type Button}" x:Key="btnStartGameStyle">
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="{x:Type Button}">
+                        <Border x:Name="bdr" Width="{TemplateBinding Width}" Background="{TemplateBinding Background}" HorizontalAlignment="{TemplateBinding HorizontalAlignment}" VerticalAlignment="{TemplateBinding VerticalAlignment}">
+                            <ContentPresenter></ContentPresenter>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="bdr" Property="Background" Value="{StaticResource bruBtnStartGameHover}"></Setter>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+        <Style TargetType="{x:Type Button}" x:Key="btnImageTextStyle">
+            <Setter Property="Margin" Value="3,3"></Setter>
+            <Setter Property="Background" Value="Transparent"></Setter>
+            <Setter Property="Width" Value="100"></Setter>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="{x:Type Button}">
+                        <Border Background="{TemplateBinding Background}">
+                            <ContentPresenter></ContentPresenter>
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+            <Style.Triggers>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter Property="Background" Value="{StaticResource bruBtnHoverBackground }"></Setter>
+                </Trigger>
+                <Trigger Property="IsPressed" Value="True">
+                    <Setter Property="Background" Value="{StaticResource bruBtnPressedBackground}"></Setter>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+        <Style TargetType="{x:Type Button}" x:Key="btnImageStyle">
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="{x:Type Button}">
+                        <Border>
+                            <ContentPresenter></ContentPresenter>
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+        <Style TargetType="{x:Type Image}" x:Key="imgImageTextStyle">
+            <Setter Property="Width" Value="36"></Setter>
+            <Setter Property="Height" Value="36"></Setter>
+            <Setter Property="Margin" Value="3"></Setter>
+        </Style>
+        <ControlTemplate TargetType="{x:Type ToggleButton}" x:Key="expStyleTgl">
+            <Border>
+                <Path x:Name="Arrow" HorizontalAlignment="Center" VerticalAlignment="Center" Fill="{StaticResource bruBtnOK}" Data="M 0 0 L 14 24.25 L 28 0 Z"></Path>
+            </Border>
+            <ControlTemplate.Triggers>
+                <Trigger Property="IsChecked" Value="True">
+                    <Setter TargetName="Arrow" Property="Data" Value="M 0 24.25 L 14 0 L 28 24.25 Z"></Setter>
+                </Trigger>
+            </ControlTemplate.Triggers>
+        </ControlTemplate>
+        <Style TargetType="{x:Type Expander}" x:Key="expStyle">
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="{x:Type Expander}">
+                        <Grid>
+                            <Grid.RowDefinitions>
+                                <RowDefinition></RowDefinition>
+                                <RowDefinition></RowDefinition>
+                            </Grid.RowDefinitions>
+                            <Border Grid.Row="0" x:Name="bdr" CornerRadius="10" Background="{StaticResource bruBtnBackground}" Padding="15,10" Margin="10,5,10,0">
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition></ColumnDefinition>
+                                        <ColumnDefinition Width="auto"></ColumnDefinition>
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock Grid.Column="0"  FontSize="18" Foreground="{StaticResource bruBtnText}" Text="{TemplateBinding Header}" Margin="0,0,10,0"></TextBlock>
+                                    <ToggleButton OverridesDefaultStyle="True" Grid.Column="1" Template="{StaticResource expStyleTgl}" IsChecked="{Binding IsExpanded, Mode=TwoWay, RelativeSource={RelativeSource TemplatedParent}}"></ToggleButton>
+                                </Grid>
+                            </Border>
+                            <Border x:Name="ContentRow" Grid.Row="1" Visibility="Collapsed">
+                                <ContentPresenter></ContentPresenter>
+                            </Border>
+                        </Grid>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsExpanded" Value="True">
+                                <Setter TargetName="ContentRow" Property="Visibility" Value="Visible"></Setter>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+        <Style TargetType="{x:Type ListBox}" x:Key="lstStyle">
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="{x:Type ListBox}">
+                        <Border x:Name="bdr" CornerRadius="10" Background="{StaticResource bruBtnBackground}" Padding="15,10" Margin="10,0,10,0">
+                            <ScrollViewer>
+                                <StackPanel IsItemsHost="True"></StackPanel>
+                            </ScrollViewer>
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+        <Style TargetType="{x:Type ListBoxItem}" x:Key="lstiStyle">
+            <Setter Property="TextBlock.Foreground" Value="{StaticResource bruBtnText}"></Setter>
+            <Setter Property="TextBlock.FontSize" Value="14"></Setter>
+        </Style>
+        <Style TargetType="{x:Type ToggleButton}" x:Key="tglOnOffStyle">
+            <Setter Property="Template" >
+                <Setter.Value>
+                    <ControlTemplate TargetType="{x:Type ToggleButton }">
+                        <Border>
+                            <Image x:Name="img" Width="78" Height="40"></Image>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsChecked" Value="True">
+                                <Setter TargetName="img" Property="Source" Value="resource\on.png"></Setter>
+                            </Trigger>
+                            <Trigger Property="IsChecked" Value="False">
+                                <Setter TargetName="img" Property="Source" Value="resource\off.png"></Setter>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+        <!--<Style TargetType="{x:Type ComboBox}" x:Key="cmbSettingStyle">
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="{x:Type ComboBox}">
+                        <Border x:Name="bdr" CornerRadius="10" Background="{StaticResource bruBtnBackground}" Padding="15,10" Margin="10,0">
+                            <TextBlock FontSize="18" Foreground="{StaticResource bruBtnText}"></TextBlock>
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>-->
+    </Application.Resources>
+</Application>

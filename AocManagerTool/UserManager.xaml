@@ -1,0 +1,8 @@
+﻿<Window x:Class="UserManager"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    Title="帝国时代用户管理器" Height="300" Width="300">
+    <Grid>
+        <Button x:Name="test" Click="test_Click">test</Button>
+    </Grid>
+</Window>
