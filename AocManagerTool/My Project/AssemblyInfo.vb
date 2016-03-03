@@ -14,8 +14,8 @@ Imports System.Windows
 <Assembly: AssemblyTitle("AocManagerTool")> 
 <Assembly: AssemblyDescription("帝国时代管家")> 
 <Assembly: AssemblyCompany("yty@翔鹰帝国网")> 
-<Assembly: AssemblyProduct("AocManagerTool")> 
-<Assembly: AssemblyCopyright("Copyright © yty 2014-2015. All rights reserved.")> 
+<Assembly: AssemblyProduct("AocManagerTool")>
+<Assembly: AssemblyCopyright("Copyright © yty 2014-2016. All rights reserved.")>
 <Assembly: AssemblyTrademark("")> 
 <Assembly: ComVisible(false)>
 
