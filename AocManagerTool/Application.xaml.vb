@@ -23,7 +23,7 @@
   Private Sub Application_Startup(sender As Object, e As StartupEventArgs)
     gApp = Me
     gPing = FindResource("pinPing")
-    mtx = New Threading.Mutex(True, "AocManagerTool", bNewInstance)
+    mtx = New Threading.Mutex(True, NameOf(AocManagerTool), bNewInstance)
     If bNewInstance Then
       IO.Directory.SetCurrentDirectory(AppDomain.CurrentDomain.BaseDirectory)
       IO.Directory.SetCurrentDirectory("e:\hawkempire\manager\exe")

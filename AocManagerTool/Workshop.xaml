@@ -179,7 +179,7 @@
                     </Grid.ColumnDefinitions>
                     <Button x:Name="btnWorkshopDIY" Grid.Row="0" Grid.Column="0" Style="{StaticResource btnImageTextStyle1}" Click="btnWorkshopDIY_Click">
                         <StackPanel>
-                            <Image Source="resource\resslp.png" RenderOptions.BitmapScalingMode="HighQuality"></Image>
+                            <Image Source="resource\resdrs.png" RenderOptions.BitmapScalingMode="HighQuality"></Image>
                             <TextBlock Grid.Row="1" Grid.Column="0" HorizontalAlignment="Center" Margin="0,7,0,0">DIY</TextBlock>
                         </StackPanel>
                     </Button>

@@ -29,7 +29,7 @@
   Private Sub MainWindow_Closing(sender As Object, e As ComponentModel.CancelEventArgs)
     Dim q = From node In gxLocalRes.<res>, aMod In gtModsInfo
             Let index = gtModsInfo.IndexOf(aMod)
-            Where node.<id>.Value = aMod.Id
+            Where CInt(node.<id>(0)) = aMod.Id
             Select node, index
     For Each result In q
       result.node.<order>.Value = result.index
@@ -45,7 +45,7 @@
     If IO.File.Exists(IO.Path.Combine(gsManagerPath, "xml\localmods.xml")) Then
       Dim q = From aMod In gxLocalRes.<res>
               Where aMod.<type>.Value = "mod"
-              Order By aMod.<order>
+              Order By CInt(aMod.<order>(0))
               Select aMod
       For Each ele In q
         Dim modInfo As New ModInfo
