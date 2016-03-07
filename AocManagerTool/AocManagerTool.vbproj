@@ -340,7 +340,7 @@
     <Resource Include="Resource\resmod.png" />
     <Resource Include="Resource\resrms.png" />
     <Resource Include="Resource\resscx.png" />
-    <Resource Include="Resource\resslp.png" />
+    <Resource Include="Resource\resdrs.png" />
   </ItemGroup>
   <ItemGroup>
     <Resource Include="Resource\logogreen.png" />

@@ -13,7 +13,7 @@
   End Structure
   Public Structure resFile
     Public id As Integer
-    Public name As String
+    Public name As String ' e.g. "\folder\file.ext"
     Public update As Integer
     Public Sub New(id As Integer, name As String, update As Integer)
       Me.id = id
@@ -137,6 +137,16 @@
           Exit Sub
         End If
         If MessageBox.Show($"确定要卸载资源 ""{cRes.Name}"" 吗？", "提示", MessageBoxButton.OKCancel, MessageBoxImage.Question) = MessageBoxResult.OK Then
+          For Each ele In xmlEle.<files>.<file>
+            Try
+              IO.File.Delete(gsHawkempirePath & ele.Value)
+            Catch ex As ArgumentException
+            Catch ex As IO.DirectoryNotFoundException
+            Catch ex As IO.IOException
+            Catch ex As NotSupportedException
+            Catch ex As UnauthorizedAccessException
+            End Try
+          Next
           If cRes.ResType = "mod" Then
             For Each ele In gtModsInfo
               If ele.Id = cRes.ResId Then
@@ -157,27 +167,21 @@
               End If
             Next
           End If
-          For Each ele In xmlEle.<files>.<file>
-            IO.File.Delete(gsHawkempirePath & ele.Value)
-          Next
-          For Each ele In xmlEle.<dirs>.<dir>
-            If IO.Directory.Exists(gsHawkempirePath & ele.Value) AndAlso
-              (New IO.DirectoryInfo(gsHawkempirePath & ele.Value).EnumerateFiles("*", IO.SearchOption.AllDirectories).Count = 0) Then
-              IO.Directory.Delete(gsHawkempirePath & ele.Value, True)
-            End If
-          Next
-          For Each ele In gxLocalRes.DocumentElement.SelectNodes(String.Format("res[id='{0}']", cRes.ResId))
-            gxLocalRes.DocumentElement.RemoveChild(ele)
+          Dim q = From x In gxLocalRes.<res>
+                  Where CInt(x.<id>(0)) = cRes.ResId
+                  Select x
+          For Each ele In q
+            ele.Remove()
           Next
           cRes.Status = gcRes.ResourceStatus.CanInstall
-          MessageBox.Show("资源 """ & cRes.Name & """ 卸载完毕。")
+          MessageBox.Show($"资源 ""{cRes.Name}"" 卸载完毕。")
         End If
       Case gcRes.ResourceStatus.CanStart
-        Dim exe As String = gsHawkempirePath & xmlEle("exe").InnerText
+        Dim exe As String = gsHawkempirePath & xmlEle.<exe>.Value
         If IO.File.Exists(exe) Then
-          Dim p As New Process
-          p.StartInfo.WorkingDirectory = IO.Path.GetDirectoryName(exe)
-          p.StartInfo.FileName = exe
+          Dim p As New Process With {
+            .StartInfo = New ProcessStartInfo(exe) With {
+            .WorkingDirectory = IO.Path.GetDirectoryName(exe)}}
           p.Start()
         Else
           MessageBox.Show("MOD 程序文件不存在，请联系资源上传人员。")
@@ -187,15 +191,15 @@
           MessageBox.Show("帝国时代正在运行。请关闭帝国时代程序后，再启用模组。")
         Else
           Dim dic As New Dictionary(Of String, List(Of String))
-          Dim ver As Integer = xmlEle("version").InnerText
-          For Each fil In xmlEle.SelectNodes("files/file")
-            Dim dirName As String = IO.Path.GetFileName(IO.Path.GetDirectoryName(fil.InnerText)) '"graphics.drs"
+          Dim ver = CInt(xmlEle.<version>(0))
+          For Each fil In xmlEle.<files>.<file>
+            Dim dirName As String = IO.Path.GetFileName(IO.Path.GetDirectoryName(fil.Value)) ' e.g. "graphics.drs"
             If Not dic.ContainsKey(dirName) Then dic.Add(dirName, New List(Of String))
-            dic(dirName).Add(gsHawkempirePath & fil.InnerText)
+            dic(dirName).Add(gsHawkempirePath & fil.Value)
           Next
           For Each entry In dic
             Dim drs As drsFile
-            If (ver And 4) = 4 Or (ver And 8) = 8 Or (ver And &H10) = &H10 Then '1.0,1.4
+            If (ver And 4) = 4 Or (ver And 8) = 8 Or (ver And &H10) = &H10 Then ' Aoc version 1.0, 1.4
               drs = New drsFile(IO.Path.Combine(gsHawkempirePath, "data", entry.Key))
             ElseIf (ver And &H20) = &H20 Then 'AoFE
               drs = New drsFile(IO.Path.Combine(gsHawkempirePath, "games\forgotten empires\data", entry.Key))
@@ -208,27 +212,27 @@
               If Not drs.ContainsKey(tableName) Then
                 drs.Add(tableName, New SortedDictionary(Of UInteger, Byte()))
               End If
-              drs(tableName)(nm) = My.Computer.FileSystem.ReadAllBytes(slp)
+              drs(tableName)(nm) = IO.File.ReadAllBytes(slp)
             Next
             drs.Save()
           Next
           cRes.Status = gcRes.ResourceStatus.CanDisable
-          xmlEle("status").InnerText = gcRes.ResourceStatus.CanDisable
+          xmlEle.<status>.Value = gcRes.ResourceStatus.CanDisable
         End If
       Case gcRes.ResourceStatus.CanDisable
         If IsAocStarted() Then
           MessageBox.Show("帝国时代正在运行。请关闭帝国时代程序后，再禁用模组。")
         Else
           Dim dic As New Dictionary(Of String, List(Of String))
-          Dim ver As Integer = xmlEle("version").InnerText
-          For Each fil As Xml.XmlElement In xmlEle.SelectNodes("files/file")
-            Dim dirName As String = IO.Path.GetFileName(IO.Path.GetDirectoryName(fil.InnerText)) '"graphics.drs"
+          Dim ver = CInt(xmlEle.<version>(0))
+          For Each fil In xmlEle.<files>.<file>
+            Dim dirName As String = IO.Path.GetFileName(IO.Path.GetDirectoryName(fil.Value)) ' e.g. "graphics.drs"
             If Not dic.ContainsKey(dirName) Then dic.Add(dirName, New List(Of String))
-            dic(dirName).Add(IO.Path.GetFileName(fil.InnerText))
+            dic(dirName).Add(IO.Path.GetFileName(fil.Value))
           Next
           For Each entry In dic
             Dim drsMod, drsOrig As New drsFile
-            If (ver And 4) = 4 Or (ver And 8) = 8 Or (ver And &H10) = &H10 Then '1.0,1.4
+            If (ver And 4) = 4 Or (ver And 8) = 8 Or (ver And &H10) = &H10 Then ' Aoc version 1.0, 1.4
               drsMod = New drsFile(IO.Path.Combine(gsHawkempirePath, "data", entry.Key))
               drsOrig = New drsFile(IO.Path.Combine(gsHawkempirePath, "manager\drs", entry.Key))
             ElseIf (ver And &H20) = &H20 Then 'AoFE
@@ -246,74 +250,67 @@
             Next
             drsMod.Save()
           Next
-          xmlEle("status").InnerText = gcRes.ResourceStatus.CanEnable
+          xmlEle.<status>.Value = gcRes.ResourceStatus.CanEnable
           cRes.Status = gcRes.ResourceStatus.CanEnable
         End If
       Case gcRes.ResourceStatus.CanUpdate
-
+        'TODO
     End Select
   End Sub
 
   Private Sub bgwDownloader_DoWork(ByVal sender As ComponentModel.BackgroundWorker, ByVal e As ComponentModel.DoWorkEventArgs)
-    Dim cRes As gcRes = e.Argument
-    Dim rq As Net.HttpWebRequest = Net.WebRequest.Create(gcsRC & "res.php?action=download&res=" & Int2CSID(cRes.ResId))
+    Dim cRes = CType(e.Argument, gcRes)
+    Dim rq As Net.HttpWebRequest = Net.WebRequest.Create($"{gcsRC}res.php?action=download&res={Int2CSID(cRes.ResId)}")
     rq.CookieContainer = New Net.CookieContainer
     rq.CookieContainer.Add(Cookie)
-    Dim rp As Net.HttpWebResponse = rq.GetResponse
+    Dim rp As Net.HttpWebResponse = rq.GetResponse()
     rp.Close()
     If gtConnRes.State <> Data.ConnectionState.Open Then
-      gtConnRes.ConnectionString = String.Format("server={0};uid={1};password={2};database={3};port={4}", gcsMySqlServer, gcsMySqlUser, gcsMySqlPassword, gcsMySqlDatabase, gcsMySqlPort)
+      gtConnRes.ConnectionString = $"server={gcsMySqlServer};uid={gcsMySqlUser};password={gcsMySqlPassword};database={gcsMySqlDatabase};port={gcsMySqlPort}"
       gtConnRes.Open()
     End If
     Dim comm As MySql.Data.MySqlClient.MySqlCommand = New MySql.Data.MySqlClient.MySqlCommand("select id,PathFile(id),t_update from resfile where resid=" & cRes.ResId, gtConnRes)
-    Dim rd As MySql.Data.MySqlClient.MySqlDataReader = comm.ExecuteReader()
+    Dim rd = comm.ExecuteReader()
     Dim lFiles As New List(Of resFile)
-    While rd.Read
+    While rd.Read()
       lFiles.Add(New resFile(rd.GetInt32(0), rd.GetString(1).Replace("/", "\"), rd.GetInt32(2)))
     End While
     rd.Close()
-    Dim detectExist As Xml.XmlElement = gxLocalRes.DocumentElement.SelectSingleNode(String.Format("res[id='{0}']", cRes.ResId))
-    If Not IsNothing(detectExist) Then gxLocalRes.DocumentElement.RemoveChild(detectExist)
-    Dim resElement As Xml.XmlElement = gxLocalRes.DocumentElement.AppendChild(gxLocalRes.CreateElement("res"))
-    resElement.AppendChild(gxLocalRes.CreateElement("id")).InnerText = cRes.ResId
-    resElement.AppendChild(gxLocalRes.CreateElement("type")).InnerText = cRes.ResType
-    resElement.AppendChild(gxLocalRes.CreateElement("title")).InnerText = cRes.Name
+    Dim AlreadyExists = (From x In gxLocalRes.<res>
+                         Where CInt(x.<id>(0)) = cRes.ResId
+                         Select x).SingleOrDefault()
+    AlreadyExists?.Remove()
+    Dim resElement = <res>
+                       <id><%= cRes.ResId %></id>
+                       <type><%= cRes.ResType %></type>
+                       <title><%= cRes.Name %></title>
+                       <files>
+                         <%= From file In lFiles
+                             Select <file date=<%= file.update %>><%= file.name %></file> %>
+                       </files>
+                     </res>
     Select Case cRes.ResType
       Case "cpx", "scx"
-        resElement.AppendChild(gxLocalRes.CreateElement("status")).InnerText = gcRes.ResourceStatus.CanDelete
+        resElement.Add(<status><%= gcRes.ResourceStatus.CanDelete %></status>)
       Case "drs"
-        resElement.AppendChild(gxLocalRes.CreateElement("status")).InnerText = gcRes.ResourceStatus.CanEnable
-        resElement.AppendChild(gxLocalRes.CreateElement("version")).InnerText = cRes.GameVersion
+        resElement.Add(<status><%= gcRes.ResourceStatus.CanEnable %></status>)
+        resElement.Add(<version><%= cRes.GameVersion %></version>)
       Case "mod"
-        resElement.AppendChild(gxLocalRes.CreateElement("status")).InnerText = gcRes.ResourceStatus.CanStart
-        resElement.AppendChild(gxLocalRes.CreateElement("exe")).InnerText = lFiles.Find(Function(p As resFile) p.name.EndsWith(".exe") And IO.Path.GetFileName(IO.Path.GetDirectoryName(p.name)) = "age2_x1").name
+        resElement.Add(<status><%= gcRes.ResourceStatus.CanStart %></status>)
+        resElement.Add(<exe><%= lFiles.Find(Function(p As resFile) p.name.EndsWith(".exe", StringComparison.OrdinalIgnoreCase) And
+                                              IO.Path.GetFileName(IO.Path.GetDirectoryName(p.name)) = "age2_x1").
+                                              name %></exe>)
       Case Else
-        resElement.AppendChild(gxLocalRes.CreateElement("status")).InnerText = gcRes.ResourceStatus.CanDelete
+        resElement.Add(<status><%= gcRes.ResourceStatus.CanDelete %></status>)
     End Select
-    Dim dirElement As Xml.XmlElement = resElement.AppendChild(gxLocalRes.CreateElement("dirs"))
-    Dim fileElement As Xml.XmlElement = resElement.AppendChild(gxLocalRes.CreateElement("files"))
     Dim dlBytes As Long = 0
     For Each fil In lFiles
-      rq = Net.WebRequest.Create(gcsRC & "res.php?file=" & Int2CSID(fil.id))
+      rq = Net.WebRequest.Create($"{gcsRC}res.php?file={Int2CSID(fil.id)}")
       rq.CookieContainer = New Net.CookieContainer
       rq.CookieContainer.Add(Cookie)
-      rp = rq.GetResponse
-      Dim rpSm = rp.GetResponseStream
-      Dim fullFN As String = gsHawkempirePath & fil.name
-      Dim relPath As String = IO.Path.GetDirectoryName(fullFN.Replace(gsHawkempirePath, ""))
-      Select Case cRes.ResType
-        Case "drs"
-          If IsNothing(dirElement.SelectSingleNode("dir['" & relPath & "']")) Then dirElement.AppendChild(gxLocalRes.CreateElement("dir")).InnerText = relPath
-          If Not IO.Directory.Exists(IO.Path.GetDirectoryName(fullFN)) Then
-            IO.Directory.CreateDirectory(IO.Path.GetDirectoryName(fullFN))
-          End If
-        Case Else
-          If Not IO.Directory.Exists(IO.Path.GetDirectoryName(fullFN)) Then
-            IO.Directory.CreateDirectory(IO.Path.GetDirectoryName(fullFN))
-            dirElement.AppendChild(gxLocalRes.CreateElement("dir")).InnerText = relPath
-          End If
-      End Select
-      Using fs As New IO.FileStream(fullFN, IO.FileMode.Create)
+      rp = rq.GetResponse()
+      Dim rpSm = rp.GetResponseStream()
+      Using fs As New IO.FileStream(gsHawkempirePath & fil.name, IO.FileMode.Create)
         Dim y(gciDlPkgSize - 1) As Byte
         Dim read As Integer
         Do
@@ -323,10 +320,6 @@
           sender.ReportProgress(dlBytes / cRes.FileSize * 100, cRes)
         Loop While read
       End Using
-      With fileElement.AppendChild(gxLocalRes.CreateElement("file"))
-        .InnerText = fullFN.Replace(gsHawkempirePath, "")
-        .Attributes.Append(gxLocalRes.CreateAttribute("date")).InnerText = fil.update
-      End With
       rp.Close()
     Next
     e.Result = cRes
@@ -349,25 +342,27 @@
         modInfo.Order = gtModsInfo.Count
         modInfo.Id = cRes.ResId
         modInfo.Title = cRes.Name
-        modInfo.Exe = gxLocalRes.DocumentElement.SelectSingleNode(String.Format("res[id='{0}']", cRes.ResId))("exe").InnerText
+        modInfo.Exe = (From x In gxLocalRes.<res>
+                       Where CInt(x.<id>(0)) = cRes.ResId
+                       Select x.<exe>.Value).SingleOrDefault()
         If Not gtModsInfo.Any(Function(p) p.Id = modInfo.Id) Then gtModsInfo.Add(modInfo)
-        Dim btn As New Button
-        btn.Style = FindResource("btnStartGameListStyle")
-        btn.Content = modInfo.Title
-        btn.Tag = modInfo
+        Dim btn As New Button With {
+          .Style = FindResource("btnStartGameListStyle"),
+          .Content = modInfo.Title,
+          .Tag = modInfo}
         AddHandler btn.Click, AddressOf gwMain.btnGameList_Click
         gwMain.stpGameList.Children.Add(btn)
-        btn = New Button
-        btn.Style = FindResource("btnSettingStyle")
-        btn.Content = modInfo.Title
-        btn.Tag = modInfo
+        btn = New Button With {
+          .Style = FindResource("btnSettingStyle"),
+          .Content = modInfo.Title,
+          .Tag = modInfo}
         AddHandler btn.Click, AddressOf gwMain.btnSwitchToMod_Click
         gwMain.wrpStarts.Children.Add(btn)
       Case Else
         cRes.Status = gcRes.ResourceStatus.CanDelete
     End Select
-    CType(LogicalTreeHelper.FindLogicalNode(cRes.Button.Parent, "txb"), FrameworkElement).Visibility = Visibility.Hidden
-    CType(LogicalTreeHelper.FindLogicalNode(cRes.Button.Parent, "prb"), FrameworkElement).Visibility = Visibility.Hidden
+    CType(LogicalTreeHelper.FindLogicalNode(cRes.Button.Parent, NameOf(txb)), FrameworkElement).Visibility = Visibility.Hidden
+    CType(LogicalTreeHelper.FindLogicalNode(cRes.Button.Parent, NameOf(prb)), FrameworkElement).Visibility = Visibility.Hidden
   End Sub
 
   Private Sub btnWorkshopBack_Click(sender As Object, e As RoutedEventArgs)
@@ -385,9 +380,9 @@
   End Sub
 
   Private Sub btnResListMore_Click(sender As Button, e As RoutedEventArgs)
-    Dim cRes As gcRes = sender.Tag
+    Dim cRes = CType(sender.Tag, gcRes)
     pop.Tag = cRes
-    pop.PlacementTarget = LogicalTreeHelper.FindLogicalNode(sender.Parent, "btnResList")
+    pop.PlacementTarget = LogicalTreeHelper.FindLogicalNode(sender.Parent, NameOf(btnResList))
     stpPopup.Children.Clear()
     stpPopup.Children.Add(FindResource("btnResForum"))
     stpPopup.Background = CType(pop.PlacementTarget, Button).Background
@@ -422,32 +417,35 @@
     cRes.Images.Clear()
     stpImages.Children.Clear()
     If gtConnRes.State <> Data.ConnectionState.Open Then
-      gtConnRes.ConnectionString = String.Format("server={0};uid={1};password={2};database={3};port={4}", gcsMySqlServer, gcsMySqlUser, gcsMySqlPassword, gcsMySqlDatabase, gcsMySqlPort)
+      gtConnRes.ConnectionString = $"server={gcsMySqlServer};uid={gcsMySqlUser};password={gcsMySqlPassword};database={gcsMySqlDatabase};port={gcsMySqlPort}"
       gtConnRes.Open()
     End If
-    Dim comm As MySql.Data.MySqlClient.MySqlCommand = New MySql.Data.MySqlClient.MySqlCommand("select id,w,h from resimg where resid=" & cRes.ResId, gtConnRes)
-    Dim rd As MySql.Data.MySqlClient.MySqlDataReader = comm.ExecuteReader()
-    While rd.Read
-      cRes.Images.Add(New gcRes.ImageInfo With {.Id = rd.GetInt32(0), .w = rd.GetInt32(1), .h = rd.GetInt32(2)})
+    Dim comm = New MySql.Data.MySqlClient.MySqlCommand($"select id,w,h from resimg where resid={cRes.ResId}", gtConnRes)
+    Dim rd = comm.ExecuteReader()
+    While rd.Read()
+      cRes.Images.Add(New gcRes.ImageInfo With {
+                      .Id = rd.GetInt32(0),
+                      .w = rd.GetInt32(1),
+                      .h = rd.GetInt32(2)})
     End While
     rd.Close()
     For Each ele In cRes.Images
-      Dim img As New Image
-      img.Height = 110
-      img.Margin = New Thickness(0, 0, 20, 0)
+      Dim img As New Image With {
+        .Height = 110,
+        .Margin = New Thickness(0, 0, 20, 0),
+        .ToolTip = "点击查看大图",
+        .Visibility = Visibility.Hidden}
       RenderOptions.SetBitmapScalingMode(img, BitmapScalingMode.HighQuality)
-      img.ToolTip = "点击查看大图"
-      img.Visibility = Visibility.Hidden
       AddHandler img.MouseDown, AddressOf img_MouseDown
       stpImages.Children.Add(img)
       Dim bgwImage As New ComponentModel.BackgroundWorker
       AddHandler bgwImage.DoWork, AddressOf bgwImage_DoWork
       AddHandler bgwImage.RunWorkerCompleted, AddressOf bgwImage_RunWorkerCompleted
-      Dim args As New bgwImageArgs
-      args.Id = ele.Id
-      args.Source = img
-      args.w = ele.w
-      args.h = ele.h
+      Dim args As New bgwImageArgs With {
+        .Id = ele.Id,
+        .Source = img,
+        .w = ele.w,
+        .h = ele.h}
       bgwImage.RunWorkerAsync(args)
     Next
     lstRes.Visibility = Visibility.Hidden
@@ -458,18 +456,17 @@
   End Sub
 
   Private Sub bgwImage_DoWork(sender As ComponentModel.BackgroundWorker, e As ComponentModel.DoWorkEventArgs)
-    Dim tmpFile As String = IO.Path.GetTempFileName
-    Dim args As bgwImageArgs = e.Argument
-    Dim rq As Net.HttpWebRequest, rp As Net.HttpWebResponse
+    Dim args = CType(e.Argument, bgwImageArgs)
     Try
-      rq = Net.WebRequest.Create(gcsRC & "res.php?img=" & Int2CSID(args.Id))
+      Dim rq As Net.HttpWebRequest = Net.WebRequest.Create($"{gcsRC}res.php?img={Int2CSID(args.Id)}")
       rq.AllowAutoRedirect = True
       rq.CookieContainer = New Net.CookieContainer
       rq.CookieContainer.Add(Cookie)
       rq.Method = "GET"
-      rp = rq.GetResponse
+      Dim rp As Net.HttpWebResponse = rq.GetResponse()
+      Dim tmpFile = IO.Path.GetTempFileName()
       Using fs As New IO.FileStream(tmpFile, IO.FileMode.Create)
-        rp.GetResponseStream.CopyTo(fs)
+        rp.GetResponseStream().CopyTo(fs)
       End Using
       rp.Close()
       args.Filename = tmpFile
@@ -482,43 +479,56 @@
 
   Private Sub bgwImage_RunWorkerCompleted(ByVal sender As ComponentModel.BackgroundWorker, ByVal e As ComponentModel.RunWorkerCompletedEventArgs)
     If Not e.Cancelled Then
-      Dim args As bgwImageArgs = e.Result
+      Dim args = CType(e.Result, bgwImageArgs)
       WpfAnimatedGif.ImageBehavior.SetAnimatedSource(args.Source, New BitmapImage(New Uri(args.Filename, UriKind.Absolute)))
-      'args.Source.Source = New BitmapImage(New Uri(args.Filename, UriKind.Absolute))
       args.Source.Tag = args
       args.Source.Visibility = Visibility.Visible
     End If
   End Sub
 
   Private Sub btnResDelete_Click(sender As Button, e As RoutedEventArgs)
-    Dim cRes As gcRes = sender.Tag
-    If cRes.ResType = "mod" And cRes.Name = gxConfig.DocumentElement.Item("aocversion").InnerText Then
+    Dim cRes = CType(sender.Tag, gcRes)
+    If cRes.ResType = "mod" And cRes.Name = gxConfig.<aocversion>.Value Then
       MessageBox.Show("不能卸载已被选定为当前游戏版本的MOD，请选择其他游戏版本程序后再卸载。")
       Exit Sub
     End If
-    If MessageBox.Show("确定要卸载资源 """ & cRes.Name & """ 吗？", "提示", MessageBoxButton.OKCancel, MessageBoxImage.Question) = MessageBoxResult.OK Then
+    If MessageBox.Show($"确定要卸载资源 ""{cRes.Name}"" 吗？", "提示", MessageBoxButton.OKCancel, MessageBoxImage.Question) = MessageBoxResult.OK Then
+      Dim xmlEle = (From x In gxLocalRes.<res>
+                    Where CInt(x.<id>(0)) = cRes.ResId
+                    Select x).SingleOrDefault()
+      For Each ele In xmlEle.<files>.<file>
+        Try
+          IO.File.Delete(gsHawkempirePath & ele.Value)
+        Catch ex As ArgumentException
+        Catch ex As IO.DirectoryNotFoundException
+        Catch ex As IO.IOException
+        Catch ex As NotSupportedException
+        Catch ex As UnauthorizedAccessException
+        End Try
+      Next
       If cRes.ResType = "mod" Then
         For Each ele As ModInfo In gtModsInfo
-          If ele.Id = cRes.ResId Then gtModsInfo.Remove(ele) : Exit For
+          If ele.Id = cRes.ResId Then
+            gtModsInfo.Remove(ele)
+            Exit For
+          End If
         Next
         For i = 3 To gwMain.stpGameList.Children.Count - 1
-          If CType(CType(gwMain.stpGameList.Children(i), Button).Tag, ModInfo).Id = cRes.ResId Then gwMain.stpGameList.Children.RemoveAt(i) : Exit For
+          If CType(CType(gwMain.stpGameList.Children(i), Button).Tag, ModInfo).Id = cRes.ResId Then
+            gwMain.stpGameList.Children.RemoveAt(i)
+            Exit For
+          End If
         Next
         For Each ele In gwMain.wrpStarts.Children
-          If CType(ele.Tag, ModInfo).Id = cRes.ResId Then gwMain.wrpStarts.Children.Remove(ele) : Exit For
+          If CType(ele.Tag, ModInfo).Id = cRes.ResId Then
+            gwMain.wrpStarts.Children.Remove(ele)
+            Exit For
+          End If
         Next
       End If
-      For Each ele As Xml.XmlElement In gxLocalRes.DocumentElement.SelectNodes(String.Format("res[id='{0}']/files/file", cRes.ResId))
-        IO.File.Delete(gsHawkempirePath & ele.InnerText)
-      Next
-      For Each ele As Xml.XmlElement In gxLocalRes.DocumentElement.SelectNodes(String.Format("res[id='{0}']/dirs/dir", cRes.ResId))
-        If IO.Directory.Exists(gsHawkempirePath & ele.InnerText) AndAlso (New IO.DirectoryInfo(gsHawkempirePath & ele.InnerText).EnumerateFiles("*", IO.SearchOption.AllDirectories).Count = 0) Then IO.Directory.Delete(gsHawkempirePath & ele.InnerText, True)
-      Next
-      For Each ele As Xml.XmlElement In gxLocalRes.DocumentElement.SelectNodes(String.Format("res[id='{0}']", cRes.ResId))
-        gxLocalRes.DocumentElement.RemoveChild(ele)
-      Next
+      xmlEle.Remove()
       cRes.Status = gcRes.ResourceStatus.CanInstall
-      MessageBox.Show("资源 """ & cRes.Name & """ 卸载完毕。")
+      MessageBox.Show($"资源 ""{cRes.Name}"" 卸载完毕。")
     End If
     pop.IsOpen = False
   End Sub
@@ -573,7 +583,7 @@
   End Sub
 
   Private Sub btnResForum_Click(sender As Button, e As RoutedEventArgs)
-    Dim cRes As gcRes = sender.Tag
+    Dim cRes = CType(sender.Tag, gcRes)
     If Uri.IsWellFormedUriString(cRes.FromURL, UriKind.Absolute) Then Process.Start(cRes.FromURL) Else MessageBox.Show("本资源无对应帖子")
     e.Handled = True
   End Sub
@@ -581,30 +591,30 @@
   Private Sub btnSearchRes_Click(sender As Object, e As RoutedEventArgs)
     Select Case cboSearchRes.SelectedIndex
       Case 0
-        lstRes.ItemsSource = glRes.FindAll(Function(p) p.Name.ToLower.Contains(txtSearchRes.Text.ToLower))
+        lstRes.ItemsSource = glRes.FindAll(Function(p) p.Name.ToLower().Contains(txtSearchRes.Text.ToLower()))
       Case 1
-        lstRes.ItemsSource = glRes.FindAll(Function(p) p.AuthorName.ToLower.Contains(txtSearchRes.Text.ToLower))
+        lstRes.ItemsSource = glRes.FindAll(Function(p) p.AuthorName.ToLower().Contains(txtSearchRes.Text.ToLower()))
       Case 2
-        lstRes.ItemsSource = glRes.FindAll(Function(p) p.Intro.ToLower.Contains(txtSearchRes.Text.ToLower))
+        lstRes.ItemsSource = glRes.FindAll(Function(p) p.Intro.ToLower().Contains(txtSearchRes.Text.ToLower()))
     End Select
     e.Handled = True
   End Sub
 
   Private Sub btnSort_Click(sender As Object, e As RoutedEventArgs)
     Dim lst As List(Of gcRes) = lstRes.ItemsSource
-    If cboSort.SelectedIndex = 0 And cboOrder.SelectedIndex = 0 Then lstRes.ItemsSource = lst.OrderBy(Function(p) p.CreateDate).ToList
-    If cboSort.SelectedIndex = 0 And cboOrder.SelectedIndex = 1 Then lstRes.ItemsSource = lst.OrderByDescending(Function(p) p.UpdateDate).ToList
-    If cboSort.SelectedIndex = 1 And cboOrder.SelectedIndex = 0 Then lstRes.ItemsSource = lst.OrderBy(Function(p) p.Downloads).ToList
-    If cboSort.SelectedIndex = 1 And cboOrder.SelectedIndex = 1 Then lstRes.ItemsSource = lst.OrderByDescending(Function(p) p.Downloads).ToList
-    If cboSort.SelectedIndex = 2 And cboOrder.SelectedIndex = 0 Then lstRes.ItemsSource = lst.OrderBy(Function(p) p.Name).ToList
-    If cboSort.SelectedIndex = 2 And cboOrder.SelectedIndex = 1 Then lstRes.ItemsSource = lst.OrderByDescending(Function(p) p.Name).ToList
-    If cboSort.SelectedIndex = 3 And cboOrder.SelectedIndex = 0 Then lstRes.ItemsSource = lst.OrderBy(Function(p) p.Rate).ToList
-    If cboSort.SelectedIndex = 3 And cboOrder.SelectedIndex = 1 Then lstRes.ItemsSource = lst.OrderByDescending(Function(p) p.Rate).ToList
+    If cboSort.SelectedIndex = 0 And cboOrder.SelectedIndex = 0 Then lstRes.ItemsSource = lst.OrderBy(Function(p) p.CreateDate).ToList()
+    If cboSort.SelectedIndex = 0 And cboOrder.SelectedIndex = 1 Then lstRes.ItemsSource = lst.OrderByDescending(Function(p) p.UpdateDate).ToList()
+    If cboSort.SelectedIndex = 1 And cboOrder.SelectedIndex = 0 Then lstRes.ItemsSource = lst.OrderBy(Function(p) p.Downloads).ToList()
+    If cboSort.SelectedIndex = 1 And cboOrder.SelectedIndex = 1 Then lstRes.ItemsSource = lst.OrderByDescending(Function(p) p.Downloads).ToList()
+    If cboSort.SelectedIndex = 2 And cboOrder.SelectedIndex = 0 Then lstRes.ItemsSource = lst.OrderBy(Function(p) p.Name).ToList()
+    If cboSort.SelectedIndex = 2 And cboOrder.SelectedIndex = 1 Then lstRes.ItemsSource = lst.OrderByDescending(Function(p) p.Name).ToList()
+    If cboSort.SelectedIndex = 3 And cboOrder.SelectedIndex = 0 Then lstRes.ItemsSource = lst.OrderBy(Function(p) p.Rate).ToList()
+    If cboSort.SelectedIndex = 3 And cboOrder.SelectedIndex = 1 Then lstRes.ItemsSource = lst.OrderByDescending(Function(p) p.Rate).ToList()
     e.Handled = True
   End Sub
 
   Private Sub img_MouseDown(sender As Image, e As MouseButtonEventArgs)
-    Dim args As bgwImageArgs = sender.Tag
+    Dim args = CType(sender.Tag, bgwImageArgs)
     Dim wndImageViewer As New imageViewer
     wndImageViewer.Owner = Me
     wndImageViewer.Tag = args.Filename

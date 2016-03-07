@@ -226,231 +226,215 @@ Module SharedModule
     End Structure
   End Structure
 End Module
+
 Public Class ImageConverter
-    Implements IValueConverter
+  Implements IValueConverter
 
-    Public Function Convert(value As Object, targetType As Type, parameter As Object, culture As CultureInfo) As Object Implements IValueConverter.Convert
-        Select Case value
-            Case "cpx"
-                Return New BitmapImage(New Uri("rescpx.png", UriKind.Relative))
-            Case "rms"
-                Return New BitmapImage(New Uri("resrms.png", UriKind.Relative))
-            Case "ai"
-                Return New BitmapImage(New Uri("resAI.png", UriKind.Relative))
-            Case "mod"
-                Return New BitmapImage(New Uri("resMOD.png", UriKind.Relative))
-            Case "drs"
-                Return New BitmapImage(New Uri("resslp.png", UriKind.Relative))
-            Case "mgx"
-                Return New BitmapImage(New Uri("resmgx.png", UriKind.Relative))
-            Case "scx"
-                Return New BitmapImage(New Uri("resscx.png", UriKind.Relative))
-            Case Else
-                Return Nothing
-        End Select
-    End Function
+  Public Function Convert(value As Object, targetType As Type, parameter As Object, culture As CultureInfo) As Object Implements IValueConverter.Convert
+    Return New BitmapImage(New Uri($"resource\res{value}.png", UriKind.Relative))
+  End Function
 
-    Public Function ConvertBack(value As Object, targetType As Type, parameter As Object, culture As CultureInfo) As Object Implements IValueConverter.ConvertBack
-        Throw New NotImplementedException()
-    End Function
+  Public Function ConvertBack(value As Object, targetType As Type, parameter As Object, culture As CultureInfo) As Object Implements IValueConverter.ConvertBack
+    Throw New NotImplementedException()
+  End Function
 End Class
 
 Public Class FilesizeConverter
-    Implements IValueConverter
+  Implements IValueConverter
 
-    Public Function Convert(value As Object, targetType As Type, parameter As Object, culture As CultureInfo) As Object Implements IValueConverter.Convert
-        Select Case value
-            Case Is <= 2 << 10
-                Return value & " B"
-            Case Is <= 2 << 20
-                Return (value >> 10) & " K"
-            Case Is <= 2L << 30
-                Return (value >> 20) & " M"
-            Case Else
-                Return ""
-        End Select
-    End Function
+  Public Function Convert(value As Object, targetType As Type, parameter As Object, culture As CultureInfo) As Object Implements IValueConverter.Convert
+    Select Case value
+      Case Is <= 2 << 10
+        Return value & " B"
+      Case Is <= 2 << 20
+        Return (value >> 10) & " K"
+      Case Is <= 2L << 30
+        Return (value >> 20) & " M"
+      Case Else
+        Return ""
+    End Select
+  End Function
 
-    Public Function ConvertBack(value As Object, targetType As Type, parameter As Object, culture As CultureInfo) As Object Implements IValueConverter.ConvertBack
-        Throw New NotImplementedException()
-    End Function
+  Public Function ConvertBack(value As Object, targetType As Type, parameter As Object, culture As CultureInfo) As Object Implements IValueConverter.ConvertBack
+    Throw New NotImplementedException()
+  End Function
 End Class
 
 Public Class ResourceStatusConverter
-    Implements IValueConverter
+  Implements IValueConverter
 
-    Public Function Convert(value As Object, targetType As Type, parameter As Object, culture As CultureInfo) As Object Implements IValueConverter.Convert
-        Dim clr(,) As Color = {{Color.FromRgb(3, 157, 0), Color.FromRgb(5, 196, 0), Color.FromRgb(18, 217, 13)},'Install
-            {Color.FromRgb(167, 10, 36), Color.FromRgb(196, 0, 32), Color.FromRgb(239, 67, 95)},'Delete
-            {Color.FromRgb(2, 144, 217), Color.FromRgb(0, 174, 255), Color.FromRgb(43, 187, 254)},'Enable, Start
-            {Color.FromRgb(90, 106, 164), Color.FromRgb(116, 129, 176), Color.FromRgb(133, 147, 199)}} 'Disable
-        Select Case value
-            Case gcRes.ResourceStatus.CanInstall
-                Select Case parameter
-                    Case "Border"
-                        Return New SolidColorBrush(clr(0, 0))
-                    Case "Back"
-                        Return New SolidColorBrush(clr(0, 1))
-                    Case "MouseOver"
-                        Return New SolidColorBrush(clr(0, 2))
-                    Case "Text"
-                        Return "安装资源"
-                    Case Else
-                        Return Nothing
-                End Select
-            Case gcRes.ResourceStatus.CanDelete
-                Select Case parameter
-                    Case "Border"
-                        Return New SolidColorBrush(clr(1, 0))
-                    Case "Back"
-                        Return New SolidColorBrush(clr(1, 1))
-                    Case "MouseOver"
-                        Return New SolidColorBrush(clr(1, 2))
-                    Case "Text"
-                        Return "删除资源"
-                    Case Else
-                        Return Nothing
-                End Select
-            Case gcRes.ResourceStatus.CanStart
-                Select Case parameter
-                    Case "Border"
-                        Return New SolidColorBrush(clr(2, 0))
-                    Case "Back"
-                        Return New SolidColorBrush(clr(2, 1))
-                    Case "MouseOver"
-                        Return New SolidColorBrush(clr(2, 2))
-                    Case "Text"
-                        Return "启动资源"
-                    Case Else
-                        Return Nothing
-                End Select
-            Case gcRes.ResourceStatus.CanEnable
-                Select Case parameter
-                    Case "Border"
-                        Return New SolidColorBrush(clr(2, 0))
-                    Case "Back"
-                        Return New SolidColorBrush(clr(2, 1))
-                    Case "MouseOver"
-                        Return New SolidColorBrush(clr(2, 2))
-                    Case "Text"
-                        Return "启用模组"
-                    Case Else
-                        Return Nothing
-                End Select
-            Case gcRes.ResourceStatus.CanDisable
-                Select Case parameter
-                    Case "Border"
-                        Return New SolidColorBrush(clr(3, 0))
-                    Case "Back"
-                        Return New SolidColorBrush(clr(3, 1))
-                    Case "MouseOver"
-                        Return New SolidColorBrush(clr(3, 2))
-                    Case "Text"
-                        Return "停用模组"
-                    Case Else
-                        Return Nothing
-                End Select
-            Case gcRes.ResourceStatus.CanUpdate
-                Select Case parameter
-                    Case "Border"
-                        Return New SolidColorBrush(clr(2, 0))
-                    Case "Back"
-                        Return New SolidColorBrush(clr(2, 1))
-                    Case "MouseOver"
-                        Return New SolidColorBrush(clr(2, 2))
-                    Case "Text"
-                        Return "更新资源"
-                    Case Else
-                        Return Nothing
-                End Select
-            Case Else
-                Return Nothing
+  Public Function Convert(value As Object, targetType As Type, parameter As Object, culture As CultureInfo) As Object Implements IValueConverter.Convert
+    Dim clr(,) As Color = {{Color.FromRgb(3, 157, 0), Color.FromRgb(5, 196, 0), Color.FromRgb(18, 217, 13)},'Install
+        {Color.FromRgb(167, 10, 36), Color.FromRgb(196, 0, 32), Color.FromRgb(239, 67, 95)},'Delete
+        {Color.FromRgb(2, 144, 217), Color.FromRgb(0, 174, 255), Color.FromRgb(43, 187, 254)},'Enable, Start
+        {Color.FromRgb(90, 106, 164), Color.FromRgb(116, 129, 176), Color.FromRgb(133, 147, 199)}} 'Disable
+    Select Case value
+      Case gcRes.ResourceStatus.CanInstall
+        Select Case parameter
+          Case "Border"
+            Return New SolidColorBrush(clr(0, 0))
+          Case "Back"
+            Return New SolidColorBrush(clr(0, 1))
+          Case "MouseOver"
+            Return New SolidColorBrush(clr(0, 2))
+          Case "Text"
+            Return "安装资源"
+          Case Else
+            Return Nothing
         End Select
-    End Function
+      Case gcRes.ResourceStatus.CanDelete
+        Select Case parameter
+          Case "Border"
+            Return New SolidColorBrush(clr(1, 0))
+          Case "Back"
+            Return New SolidColorBrush(clr(1, 1))
+          Case "MouseOver"
+            Return New SolidColorBrush(clr(1, 2))
+          Case "Text"
+            Return "删除资源"
+          Case Else
+            Return Nothing
+        End Select
+      Case gcRes.ResourceStatus.CanStart
+        Select Case parameter
+          Case "Border"
+            Return New SolidColorBrush(clr(2, 0))
+          Case "Back"
+            Return New SolidColorBrush(clr(2, 1))
+          Case "MouseOver"
+            Return New SolidColorBrush(clr(2, 2))
+          Case "Text"
+            Return "启动资源"
+          Case Else
+            Return Nothing
+        End Select
+      Case gcRes.ResourceStatus.CanEnable
+        Select Case parameter
+          Case "Border"
+            Return New SolidColorBrush(clr(2, 0))
+          Case "Back"
+            Return New SolidColorBrush(clr(2, 1))
+          Case "MouseOver"
+            Return New SolidColorBrush(clr(2, 2))
+          Case "Text"
+            Return "启用模组"
+          Case Else
+            Return Nothing
+        End Select
+      Case gcRes.ResourceStatus.CanDisable
+        Select Case parameter
+          Case "Border"
+            Return New SolidColorBrush(clr(3, 0))
+          Case "Back"
+            Return New SolidColorBrush(clr(3, 1))
+          Case "MouseOver"
+            Return New SolidColorBrush(clr(3, 2))
+          Case "Text"
+            Return "停用模组"
+          Case Else
+            Return Nothing
+        End Select
+      Case gcRes.ResourceStatus.CanUpdate
+        Select Case parameter
+          Case "Border"
+            Return New SolidColorBrush(clr(2, 0))
+          Case "Back"
+            Return New SolidColorBrush(clr(2, 1))
+          Case "MouseOver"
+            Return New SolidColorBrush(clr(2, 2))
+          Case "Text"
+            Return "更新资源"
+          Case Else
+            Return Nothing
+        End Select
+      Case Else
+        Return Nothing
+    End Select
+  End Function
 
-    Public Function ConvertBack(value As Object, targetType As Type, parameter As Object, culture As CultureInfo) As Object Implements IValueConverter.ConvertBack
-        Throw New NotImplementedException()
-    End Function
+  Public Function ConvertBack(value As Object, targetType As Type, parameter As Object, culture As CultureInfo) As Object Implements IValueConverter.ConvertBack
+    Throw New NotImplementedException()
+  End Function
 End Class
 
 Public Class VersionConverter
-    Implements IValueConverter
+  Implements IValueConverter
 
-    Public Function Convert(value As Object, targetType As Type, parameter As Object, culture As CultureInfo) As Object Implements IValueConverter.Convert
-        Dim ret As New List(Of String)
-        If value = 0 Then ret.Add("N/A")
-        If (value And 2) = 2 Then ret.Add("AoK")
-        If (value And 4) = 4 Then ret.Add("1.0A")
-        If (value And 8) = 8 Then ret.Add("1.0C")
-        If (value And &H10) = &H10 Then ret.Add("1.4")
-        If (value And &H20) = &H20 Then ret.Add("AoFE")
-        Return Join(ret.ToArray, "/")
-    End Function
+  Public Function Convert(value As Object, targetType As Type, parameter As Object, culture As CultureInfo) As Object Implements IValueConverter.Convert
+    Dim ret As New List(Of String)
+    If value = 0 Then ret.Add("N/A")
+    If (value And 2) = 2 Then ret.Add("AoK")
+    If (value And 4) = 4 Then ret.Add("1.0A")
+    If (value And 8) = 8 Then ret.Add("1.0C")
+    If (value And &H10) = &H10 Then ret.Add("1.4")
+    If (value And &H20) = &H20 Then ret.Add("AoFE")
+    Return Join(ret.ToArray, "/")
+  End Function
 
-    Public Function ConvertBack(value As Object, targetType As Type, parameter As Object, culture As CultureInfo) As Object Implements IValueConverter.ConvertBack
-        Throw New NotImplementedException()
-    End Function
+  Public Function ConvertBack(value As Object, targetType As Type, parameter As Object, culture As CultureInfo) As Object Implements IValueConverter.ConvertBack
+    Throw New NotImplementedException()
+  End Function
 End Class
 
 Public Class gcRes
-    Implements ComponentModel.INotifyPropertyChanged
+  Implements ComponentModel.INotifyPropertyChanged
 
-    Public Structure ImageInfo
-        Public Id As Integer
-        Public w As Integer
-        Public h As Integer
-    End Structure
+  Public Structure ImageInfo
+    Public Id As Integer
+    Public w As Integer
+    Public h As Integer
+  End Structure
 
-    Public Structure UpdateFile
-        Public Id As Integer
-    End Structure
+  Public Structure UpdateFile
+    Public Id As Integer
+  End Structure
 
-    Private _Status As ResourceStatus
-    Private _Progress As Integer
+  Private _Status As ResourceStatus
+  Private _Progress As Integer
 
-    Public Enum ResourceStatus
-        CanInstall
-        CanDelete
-        CanStart
-        CanEnable
-        CanDisable
-        CanUpdate
-    End Enum
-    Public Event PropertyChanged As ComponentModel.PropertyChangedEventHandler Implements ComponentModel.INotifyPropertyChanged.PropertyChanged
-    Public Property FileSize As Integer
-    Public Property CreateDate As Date
-    Public Property UpdateDate As Date
-    Public Property LatestFileUpdate As Integer
-    Public Property ResId As Integer
-    Public Property ResType As String
-    Public Property Name As String
-    Public Property AuthorUid As Integer
-    Public Property AuthorName As String
-    Public Property Summary As String
-    Public Property Intro As String
-    Public Property Images As New List(Of ImageInfo)
-    Public Property Rate As Single?
-    Public Property GameVersion As Integer
-    Public Property FromURL As String
-    Public Property Downloads As Integer
-    Public Property Button As Button
-    Public Property UpdateFiles As New List(Of UpdateFile)
-    Public Property Status As ResourceStatus
-        Get
-            Return _Status
-        End Get
-        Set(value As ResourceStatus)
-            _Status = value
+  Public Enum ResourceStatus
+    CanInstall
+    CanDelete
+    CanStart
+    CanEnable
+    CanDisable
+    CanUpdate
+  End Enum
+  Public Event PropertyChanged As ComponentModel.PropertyChangedEventHandler Implements ComponentModel.INotifyPropertyChanged.PropertyChanged
+  Public Property FileSize As Integer
+  Public Property CreateDate As Date
+  Public Property UpdateDate As Date
+  Public Property LatestFileUpdate As Integer
+  Public Property ResId As Integer
+  Public Property ResType As String
+  Public Property Name As String
+  Public Property AuthorUid As Integer
+  Public Property AuthorName As String
+  Public Property Summary As String
+  Public Property Intro As String
+  Public Property Images As New List(Of ImageInfo)
+  Public Property Rate As Single?
+  Public Property GameVersion As Integer
+  Public Property FromURL As String
+  Public Property Downloads As Integer
+  Public Property Button As Button
+  Public Property UpdateFiles As New List(Of UpdateFile)
+  Public Property Status As ResourceStatus
+    Get
+      Return _Status
+    End Get
+    Set(value As ResourceStatus)
+      _Status = value
       RaiseEvent PropertyChanged(Me, New ComponentModel.PropertyChangedEventArgs(NameOf(Status)))
     End Set
-    End Property
-    Public Property Progress As Integer
-        Get
-            Return _Progress
-        End Get
-        Set(value As Integer)
-            _Progress = value
+  End Property
+  Public Property Progress As Integer
+    Get
+      Return _Progress
+    End Get
+    Set(value As Integer)
+      _Progress = value
       RaiseEvent PropertyChanged(Me, New ComponentModel.PropertyChangedEventArgs(NameOf(Progress)))
     End Set
-    End Property
+  End Property
 End Class
