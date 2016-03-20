@@ -94,7 +94,7 @@
             </TreeView>
             <TextBox Grid.Row="1" Grid.Column="2" IsReadOnly="True" TextWrapping="Wrap" VerticalScrollBarVisibility="Auto" Text="{Binding ElementName=tvw1, Path=SelectedItem.Source}"></TextBox>
             <TextBlock Grid.Row="2" Grid.Column="2">译文：</TextBlock>
-            <TextBox x:Name="txtDst" Grid.Row="3" Grid.Column="2" Grid.RowSpan="3" TextWrapping="Wrap" AcceptsReturn="True" VerticalScrollBarVisibility="Auto" IsEnabled="{Binding ElementName=tvw1,Path=SelectedItem.Type,Converter={StaticResource cvt}}" Text="{Binding ElementName=tvw1, Path=SelectedItem.Dest,Mode=TwoWay}"></TextBox>
+            <TextBox x:Name="txtDst" Grid.Row="3" Grid.Column="2" Grid.RowSpan="3" TextWrapping="Wrap" AcceptsReturn="True" VerticalScrollBarVisibility="Auto" IsEnabled="{Binding ElementName=tvw1,Path=SelectedItem.Type,Converter={StaticResource cvt}}" Text="{Binding ElementName=tvw1, Path=SelectedItem.Dest,Mode=TwoWay,UpdateSourceTrigger=PropertyChanged}"></TextBox>
             <TextBlock Grid.Row="4">原文编码：</TextBlock>
             <ComboBox x:Name="cboSrc" Grid.Row="4" Grid.Column="1"></ComboBox>
             <TextBlock Grid.Row="5">译文编码：</TextBlock>
