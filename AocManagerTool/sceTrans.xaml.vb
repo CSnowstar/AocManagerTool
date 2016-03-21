@@ -1,5 +1,7 @@
 ﻿Public Class sceTrans
 
+  Private Const FILTERSTRING = "场景文件|*.scx;*.scn;*.scx2;*.aoe2scenario"
+
   Public Structure ImportState
     Public State As eImportState
     Public Index As Integer
@@ -27,6 +29,7 @@
     Public Enum eType
       None = -1
       Instruction1
+      PlayerParent
       Player
       Instruction2
       Hint
@@ -34,6 +37,7 @@
       Defeat
       History
       Scout
+      NumberParent
       Number
       Trigger
       TriggerName
@@ -156,13 +160,12 @@
 
   Dim cScx As scxFile, sFilename As String
   Dim ofn As New Forms.OpenFileDialog
-  WithEvents sfn As New Forms.SaveFileDialog With {.DefaultExt = "scx"}
   Dim tvwNodes As New ObjectModel.ObservableCollection(Of tvwNode)
 
   Private Sub btnOpen_Click(sender As Object, e As RoutedEventArgs)
     mnuHide.IsChecked = False
     ofn.InitialDirectory = gsHawkempirePath
-    ofn.Filter = "场景文件|*.scx"
+    ofn.Filter = FILTERSTRING
     ofn.ShowDialog()
     sFilename = ofn.FileName
     If IO.File.Exists(sFilename) Then
@@ -173,7 +176,7 @@
                    .Type = tvwNode.eType.Instruction1,
                    .Source = cScx.Instruction})
       tvwNodes.Add(New tvwNode With {
-                   .Type = tvwNode.eType.Player,
+                   .Type = tvwNode.eType.PlayerParent,
                    .Display = "玩家名称"})
       With tvwNodes.Last
         For i = 0 To cScx.Players.Count - 1
@@ -202,7 +205,7 @@
                    .Type = tvwNode.eType.Scout,
                    .Source = cScx.StringInfos(scxFile.InfoType.Scouts)})
       tvwNodes.Add(New tvwNode With {
-                   .Type = tvwNode.eType.Number,
+                   .Type = tvwNode.eType.NumberParent,
                    .Display = "玩家代号"})
       With tvwNodes.Last
         For i = 0 To 7
@@ -259,71 +262,61 @@
 
   Private Sub btnSave_Click(sender As Object, e As RoutedEventArgs)
     Dim enc As Text.Encoding = Text.Encoding.GetEncodings(cboDst.SelectedIndex).GetEncoding
+    cScx.Transcode(enc)
     For Each ele In tvwNodes
-      'RecurseNode(ele, enc)
+      RecurseNode(ele)
     Next
-    'cScx.Save(sFilename)
+    cScx.Save()
+    cScx = Nothing
+    txbStatus.Text = cScx.FileName & " 已保存"
   End Sub
 
-  'Private Sub RecurseNode(nod As tvwNode, enc As System.Text.Encoding)
-  '  Select Case nod.Type
-  '    Case tvwNode.eType.Instruction1
-  '      nod.Encode()
-  '      cScx.Instructions.OriginalContent = nod.OriginalDest
-  '    Case tvwNode.eType.Player
-  '      nod.Encode()
-  '      Dim y As Byte() = nod.OriginalDest.Take(256).ToArray
-  '      y = y.Concat(New Byte(255 - y.Length) {}).ToArray
-  '      cScx.PlayerNames(nod.Index) = y
-  '    Case tvwNode.eType.Instruction2
-  '      nod.Encode()
-  '      cScx.Instruction.OriginalContent = nod.OriginalDest
-  '    Case tvwNode.eType.Hint
-  '      nod.Encode()
-  '      cScx.Hints.OriginalContent = nod.OriginalDest
-  '    Case tvwNode.eType.Victory
-  '      nod.Encode()
-  '      cScx.Victory.OriginalContent = nod.OriginalDest
-  '    Case tvwNode.eType.Defeat
-  '      nod.Encode()
-  '      cScx.Defeat.OriginalContent = nod.OriginalDest
-  '    Case tvwNode.eType.History
-  '      nod.Encode()
-  '      cScx.History.OriginalContent = nod.OriginalDest
-  '    Case tvwNode.eType.Scout
-  '      nod.Encode()
-  '      cScx.Scouts.OriginalContent = nod.OriginalDest
-  '    Case tvwNode.eType.Number
-  '      nod.Encode()
-  '      cScx.Misc(nod.Index).Name.OriginalContent = nod.OriginalDest
-  '    Case tvwNode.eType.TriggerName
-  '      nod.Encode()
-  '      cScx.Triggers(nod.Index).Name.OriginalContent = nod.OriginalDest
-  '    Case tvwNode.eType.TriggerDesc
-  '      nod.Encode()
-  '      cScx.Triggers(nod.Index).Description.OriginalContent = nod.OriginalDest
-  '    Case tvwNode.eType.TriggerChat, tvwNode.eType.TriggerDisplay, tvwNode.eType.TriggerChange
-  '      nod.Encode()
-  '      cScx.Triggers(nod.Index).Effects(nod.SubIndex).Text.OriginalContent = nod.OriginalDest
-  '  End Select
-  '  For Each ele In nod.Children
-  '    RecurseNode(ele, enc)
-  '  Next
-  'End Sub
+  Private Sub RecurseNode(nod As tvwNode)
+    Select Case nod.Type
+      Case tvwNode.eType.Instruction1
+        cScx.Instruction = nod.Dest
+      Case tvwNode.eType.Player
+        cScx.Players(nod.Index).Name = nod.Dest
+      Case tvwNode.eType.Instruction2
+        cScx.StringInfos(scxFile.InfoType.Instruction) = nod.Dest
+      Case tvwNode.eType.Hint
+        cScx.StringInfos(scxFile.InfoType.Hints) = nod.Dest
+      Case tvwNode.eType.Victory
+        cScx.StringInfos(scxFile.InfoType.Victory) = nod.Dest
+      Case tvwNode.eType.Defeat
+        cScx.StringInfos(scxFile.InfoType.Defeat) = nod.Dest
+      Case tvwNode.eType.History
+        cScx.StringInfos(scxFile.InfoType.History) = nod.Dest
+      Case tvwNode.eType.Scout
+        cScx.StringInfos(scxFile.InfoType.Scouts) = nod.Dest
+      Case tvwNode.eType.Number
+        cScx.Misc(nod.Index).Name = nod.Dest
+      Case tvwNode.eType.TriggerName
+        cScx.Triggers(nod.Index).Name = nod.Dest
+      Case tvwNode.eType.TriggerDesc
+        cScx.Triggers(nod.Index).Description = nod.Dest
+      Case tvwNode.eType.TriggerChat, tvwNode.eType.TriggerDisplay, tvwNode.eType.TriggerChange
+        cScx.Triggers(nod.Index).Effects(nod.SubIndex).Text = nod.Dest
+    End Select
+    For Each ele In nod.Children
+      RecurseNode(ele)
+    Next
+  End Sub
 
   Private Sub btnSaveAs_Click(sender As Object, e As RoutedEventArgs)
-    sfn.InitialDirectory = gsHawkempirePath
-    sfn.ShowDialog()
-  End Sub
-
-  Private Sub sfn_FileOk(sender As Object, e As System.ComponentModel.CancelEventArgs) Handles sfn.FileOk
-    Dim enc As System.Text.Encoding = System.Text.Encoding.GetEncodings(cboDst.SelectedIndex).GetEncoding
-    For Each ele In tvwNodes
-      'RecurseNode(ele, enc)
-    Next
-    'cScx.Save(sfn.FileName)
-    cScx = Nothing
-    txbStatus.Text = sfn.FileName & " 已保存"
+    Dim sfn As New Microsoft.Win32.SaveFileDialog
+    sfn.Filter = FILTERSTRING
+    sfn.InitialDirectory = IO.Path.GetFullPath(cScx.FileName)
+    If sfn.ShowDialog() Then
+      Dim enc As Text.Encoding = Text.Encoding.GetEncodings(cboDst.SelectedIndex).GetEncoding
+      cScx.Transcode(enc)
+      For Each ele In tvwNodes
+        RecurseNode(ele)
+      Next
+      cScx.SaveAs(sfn.FileName)
+      cScx = Nothing
+      txbStatus.Text = sfn.FileName & " 已保存"
+    End If
   End Sub
 
   Private Sub btnExit_Click(sender As Object, e As RoutedEventArgs)
@@ -344,18 +337,18 @@
   End Sub
 
   Private Sub cboSrc_SelectionChanged(sender As Object, e As SelectionChangedEventArgs)
-    cScx.SetEncoding(Text.Encoding.GetEncodings(cboSrc.SelectedIndex).GetEncoding)
-    tvwNodes.Single(Function(x) x.Type = tvwNode.eType.Instruction1).Source = cScx.Instruction.Str
-    tvwNodes.Single(Function(x) x.Type = tvwNode.eType.Instruction2).Source = cScx.StringInfos(scxFile.InfoType.Instruction).Str
-    tvwNodes.Single(Function(x) x.Type = tvwNode.eType.Hint).Source = cScx.StringInfos(scxFile.InfoType.Hints).Str
-    tvwNodes.Single(Function(x) x.Type = tvwNode.eType.Scout).Source = cScx.StringInfos(scxFile.InfoType.Scouts).Str
-    tvwNodes.Single(Function(x) x.Type = tvwNode.eType.Victory).Source = cScx.StringInfos(scxFile.InfoType.Victory).Str
-    tvwNodes.Single(Function(x) x.Type = tvwNode.eType.Defeat).Source = cScx.StringInfos(scxFile.InfoType.Defeat).Str
-    Dim PlayerNameNodes = tvwNodes.Single(Function(x) x.Type = tvwNode.eType.Player).Children
+    cScx.Encoding = Text.Encoding.GetEncodings(cboSrc.SelectedIndex).GetEncoding
+    tvwNodes.Single(Function(x) x.Type = tvwNode.eType.Instruction1).Source = cScx.Instruction
+    tvwNodes.Single(Function(x) x.Type = tvwNode.eType.Instruction2).Source = cScx.StringInfos(scxFile.InfoType.Instruction)
+    tvwNodes.Single(Function(x) x.Type = tvwNode.eType.Hint).Source = cScx.StringInfos(scxFile.InfoType.Hints)
+    tvwNodes.Single(Function(x) x.Type = tvwNode.eType.Scout).Source = cScx.StringInfos(scxFile.InfoType.Scouts)
+    tvwNodes.Single(Function(x) x.Type = tvwNode.eType.Victory).Source = cScx.StringInfos(scxFile.InfoType.Victory)
+    tvwNodes.Single(Function(x) x.Type = tvwNode.eType.Defeat).Source = cScx.StringInfos(scxFile.InfoType.Defeat)
+    Dim PlayerNameNodes = tvwNodes.Single(Function(x) x.Type = tvwNode.eType.PlayerParent).Children
     For Each PlayerNameNode In PlayerNameNodes
       PlayerNameNode.Source = cScx.Players(PlayerNameNode.Index).Name
     Next
-    Dim NumberNodes = tvwNodes.Single(Function(x) x.Type = tvwNode.eType.Number).Children
+    Dim NumberNodes = tvwNodes.Single(Function(x) x.Type = tvwNode.eType.NumberParent).Children
     For Each NumberNode In NumberNodes
       NumberNode.Source = cScx.Misc(NumberNode.Index).Name
     Next

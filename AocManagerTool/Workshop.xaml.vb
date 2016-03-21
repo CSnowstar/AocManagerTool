@@ -81,7 +81,7 @@
         If aRes.Rate = 0.0 Then aRes.Rate = Nothing
         aRes.Status = (From x In gxLocalRes.<res>
                        Where CInt(x.<id>(0)) = aRes.ResId
-                       Select CInt(x.<status>(0))).SingleOrDefault()
+                       Select [Enum].Parse(GetType(gcRes.ResourceStatus), x.<status>.Value)).SingleOrDefault()
         'If aRes.LatestFileUpdate > CInt(localNode("date").InnerText) Then aRes.Status = gcRes.ResourceStatus.CanUpdate
         glRes.Add(aRes)
       Loop
@@ -136,6 +136,13 @@
           MessageBox.Show("不能卸载已被选定为当前游戏版本的MOD，请选择其他游戏版本程序后再卸载。")
           Exit Sub
         End If
+        If cRes.ResType = "tau" Then
+          Dim CurrentTauntId As Integer
+          If Integer.TryParse(gxConfig.<taunt>.Value, CurrentTauntId) AndAlso cRes.ResId = CurrentTauntId Then
+            MessageBox.Show("不能卸载当前正在使用的嘲讽音效，请选择其他嘲讽音效后再卸载。")
+            Exit Sub
+          End If
+        End If
         If MessageBox.Show($"确定要卸载资源 ""{cRes.Name}"" 吗？", "提示", MessageBoxButton.OKCancel, MessageBoxImage.Question) = MessageBoxResult.OK Then
           For Each ele In xmlEle.<files>.<file>
             Try
@@ -163,6 +170,14 @@
             For Each ele In gwMain.wrpStarts.Children
               If CType(ele.Tag, ModInfo).Id = cRes.ResId Then
                 gwMain.wrpStarts.Children.Remove(ele)
+                Exit For
+              End If
+            Next
+          End If
+          If cRes.ResType = "tau" Then
+            For Each x As Button In gwMain.wrpTaunts.Children
+              If x.Tag = cRes.ResId Then
+                gwMain.wrpTaunts.Children.Remove(x)
                 Exit For
               End If
             Next
@@ -291,26 +306,30 @@
                      </res>
     Select Case cRes.ResType
       Case "cpx", "scx"
-        resElement.Add(<status><%= gcRes.ResourceStatus.CanDelete %></status>)
+        resElement.Add(<status><%= CInt(gcRes.ResourceStatus.CanDelete) %></status>)
       Case "drs"
-        resElement.Add(<status><%= gcRes.ResourceStatus.CanEnable %></status>)
+        resElement.Add(<status><%= CInt(gcRes.ResourceStatus.CanEnable) %></status>)
         resElement.Add(<version><%= cRes.GameVersion %></version>)
       Case "mod"
-        resElement.Add(<status><%= gcRes.ResourceStatus.CanStart %></status>)
+        resElement.Add(<status><%= CInt(gcRes.ResourceStatus.CanStart) %></status>)
         resElement.Add(<exe><%= lFiles.Find(Function(p As resFile) p.name.EndsWith(".exe", StringComparison.OrdinalIgnoreCase) And
                                               IO.Path.GetFileName(IO.Path.GetDirectoryName(p.name)) = "age2_x1").
                                               name %></exe>)
+        resElement.Add(<order><%= gtModsInfo.Count %></order>)
       Case Else
-        resElement.Add(<status><%= gcRes.ResourceStatus.CanDelete %></status>)
+        resElement.Add(<status><%= CInt(gcRes.ResourceStatus.CanDelete) %></status>)
     End Select
+    gxLocalRes.Add(resElement)
     Dim dlBytes As Long = 0
     For Each fil In lFiles
+      Dim FileToCreate As String = gsHawkempirePath & fil.name
+      IO.Directory.CreateDirectory(IO.Path.GetDirectoryName(FileToCreate))
       rq = Net.WebRequest.Create($"{gcsRC}res.php?file={Int2CSID(fil.id)}")
       rq.CookieContainer = New Net.CookieContainer
       rq.CookieContainer.Add(Cookie)
       rp = rq.GetResponse()
       Dim rpSm = rp.GetResponseStream()
-      Using fs As New IO.FileStream(gsHawkempirePath & fil.name, IO.FileMode.Create)
+      Using fs As New IO.FileStream(FileToCreate, IO.FileMode.Create)
         Dim y(gciDlPkgSize - 1) As Byte
         Dim read As Integer
         Do
@@ -342,9 +361,14 @@
         modInfo.Order = gtModsInfo.Count
         modInfo.Id = cRes.ResId
         modInfo.Title = cRes.Name
-        modInfo.Exe = (From x In gxLocalRes.<res>
+        Dim TheNode = (From x In gxLocalRes.<res>
                        Where CInt(x.<id>(0)) = cRes.ResId
-                       Select x.<exe>.Value).SingleOrDefault()
+                       Select x).SingleOrDefault()
+        modInfo.Exe = TheNode.<exe>.Value
+        Dim TheXml = (From x In TheNode.<files>.<file>
+                      Where x.Value.EndsWith(".xml")
+                      Select x.Value).SingleOrDefault()
+        modInfo.Path = IO.Path.Combine(gsHawkempirePath, "Games", XElement.Load(gsHawkempirePath & TheXml).<path>.Value)
         If Not gtModsInfo.Any(Function(p) p.Id = modInfo.Id) Then gtModsInfo.Add(modInfo)
         Dim btn As New Button With {
           .Style = FindResource("btnStartGameListStyle"),
@@ -358,6 +382,20 @@
           .Tag = modInfo}
         AddHandler btn.Click, AddressOf gwMain.btnSwitchToMod_Click
         gwMain.wrpStarts.Children.Add(btn)
+      Case "tau"
+        cRes.Status = gcRes.ResourceStatus.CanDelete
+        Dim btn = New Button With {
+          .Style = FindResource("btnSettingStyle"),
+          .Content = cRes.Name,
+          .Tag = cRes.ResId}
+        AddHandler btn.Click, AddressOf gwMain.btnTauntElse_Click
+        gwMain.wrpTaunts.Children.Add(btn)
+        If MessageBox.Show("请在管家主界面 游戏设置-声音-嘲讽音效语言 中设置嘲讽音效。是否立即跳转至嘲讽音效设置？", "", MessageBoxButton.YesNo) = MessageBoxResult.Yes Then
+          gwMain.Activate()
+          gwMain.tabSettings.IsSelected = True
+          gwMain.tabSound.IsSelected = True
+          gwMain.btnTauntZh.BringIntoView()
+        End If
       Case Else
         cRes.Status = gcRes.ResourceStatus.CanDelete
     End Select
@@ -397,6 +435,8 @@
       Case gcRes.ResourceStatus.CanEnable
         Select Case cRes.ResType
           Case "drs"
+            stpPopup.Children.Add(FindResource("btnResDelete"))
+          Case "tau"
             stpPopup.Children.Add(FindResource("btnResDelete"))
         End Select
       Case gcRes.ResourceStatus.CanDisable
@@ -492,6 +532,13 @@
       MessageBox.Show("不能卸载已被选定为当前游戏版本的MOD，请选择其他游戏版本程序后再卸载。")
       Exit Sub
     End If
+    If cRes.ResType = "tau" Then
+      Dim CurrentTauntId As Integer
+      If Integer.TryParse(gxConfig.<taunt>.Value, CurrentTauntId) AndAlso cRes.ResId = CurrentTauntId Then
+        MessageBox.Show("不能卸载当前正在使用的嘲讽音效，请选择其他嘲讽音效后再卸载。")
+        Exit Sub
+      End If
+    End If
     If MessageBox.Show($"确定要卸载资源 ""{cRes.Name}"" 吗？", "提示", MessageBoxButton.OKCancel, MessageBoxImage.Question) = MessageBoxResult.OK Then
       Dim xmlEle = (From x In gxLocalRes.<res>
                     Where CInt(x.<id>(0)) = cRes.ResId
@@ -526,6 +573,14 @@
           End If
         Next
       End If
+      If cRes.ResType = "tau" Then
+        For Each x As Button In gwMain.wrpTaunts.Children
+          If x.Tag = cRes.ResId Then
+            gwMain.wrpTaunts.Children.Remove(x)
+            Exit For
+          End If
+        Next
+      End If
       xmlEle.Remove()
       cRes.Status = gcRes.ResourceStatus.CanInstall
       MessageBox.Show($"资源 ""{cRes.Name}"" 卸载完毕。")
@@ -535,7 +590,7 @@
 
   Private Sub btnWorkshopDIY_Click(sender As Object, e As RoutedEventArgs)
     If ceWhichPage = eWhichPage.Info Then btnWorkshopBack_Click(Me, Nothing)
-    Dim listedRes As List(Of gcRes) = glRes.FindAll(Function(p As gcRes) p.ResType = "drs")
+    Dim listedRes As List(Of gcRes) = glRes.FindAll(Function(p As gcRes) p.ResType = "drs" Or p.ResType = "tau")
     lstRes.ItemsSource = listedRes
     e.Handled = True
   End Sub
@@ -623,4 +678,5 @@
     wndImageViewer.ShowDialog()
     e.Handled = True
   End Sub
+
 End Class

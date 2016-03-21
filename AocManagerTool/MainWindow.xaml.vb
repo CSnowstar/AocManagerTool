@@ -1,7 +1,7 @@
 ﻿Class MainWindow
   Inherits Window
   Dim cFd As New FlowDocument
-  Dim cXmlRemote As XDocument
+  Dim cXmlRemote As XElement
   Dim cTxdzPath As String
   Public bgwUpdate, bgwFrontpage As ComponentModel.BackgroundWorker
   Dim reqFrontpage As Net.WebRequest
@@ -53,6 +53,10 @@
         modInfo.Id = ele.<id>.Value
         modInfo.Title = ele.<title>.Value
         modInfo.Exe = ele.<exe>.Value
+        Dim TheXml = (From x In ele.<files>.<file>
+                      Where x.Value.EndsWith(".xml")
+                      Select x.Value).SingleOrDefault()
+        modInfo.Path = IO.Path.Combine(gsHawkempirePath, "Games", XElement.Load(gsHawkempirePath & TheXml).<path>.Value)
         If Not gtModsInfo.Any(Function(p) p.Id = modInfo.Id) Then gtModsInfo.Add(modInfo)
       Next
       lstModOrder.ItemsSource = gtModsInfo
@@ -151,10 +155,23 @@
         txbScenarioSound.Text = "中文"
       End If
 
+      Dim Taunts = From x In gxLocalRes.<res>
+                   Where x.<type>.Value = "tau"
+                   Select x
+      For Each Taunt In Taunts
+        Dim btn = New Button With {
+          .Style = FindResource("btnSettingStyle"),
+          .Content = Taunt.<title>.Value,
+          .Tag = CInt(Taunt.<id>(0))}
+        AddHandler btn.Click, AddressOf gwMain.btnTauntElse_Click
+        gwMain.wrpTaunts.Children.Add(btn)
+      Next
       If gxConfig.<taunt>.Value = "en" Then
         txbTaunt.Text = "英文"
       ElseIf gxConfig.<taunt>.Value = "zh" Then
         txbTaunt.Text = "中文"
+      Else
+        txbTaunt.Text = Taunts.SingleOrDefault(Function(x) CInt(x.<id>(0)) = CInt(gxConfig.<taunt>(0))).<title>.Value
       End If
 
       txbHoldfastPath.Text = gxConfig.<holdfastpath>.Value
@@ -229,7 +246,7 @@
 
   Private Sub bgwFrontpage_DoWork(sender As Object, e As ComponentModel.DoWorkEventArgs)
     Try
-      e.Result = Net.WebRequest.Create(New Uri("http://www.hawkaoc.net/hawkclient/mainpage.xaml")).GetResponse.GetResponseStream
+      e.Result = Net.WebRequest.Create(New Uri("http://www.hawkaoc.net/hawkclient/mainpage.xaml")).GetResponse().GetResponseStream()
     Catch ex As Net.WebException
       e.Cancel = True
       MessageBox.Show(ex.Message)
@@ -248,7 +265,7 @@
 
   Private Sub bgwUpdate_DoWork(sender As Object, e As ComponentModel.DoWorkEventArgs)
     Try
-      cXmlRemote = XDocument.Load(
+      cXmlRemote = XElement.Load(
         Net.WebRequest.Create("http://www.hawkaoc.net/hawkclient/version3.xml").
         GetResponse().
         GetResponseStream())
@@ -260,11 +277,14 @@
 
   Private Sub bgwUpdate_RunWorkerCompleted(sender As Object, e As ComponentModel.RunWorkerCompletedEventArgs)
     If Not e.Cancelled Then
-      Dim q = From Remote In cXmlRemote.<file>
-              Group Join Local In gxLocalRes.<file> On
-                CInt(Remote.<id>(0)) Equals CInt(Local.<id>(0)) Into Group
-              From local In Group.DefaultIfEmpty(<file><version>0.0</version></file>)
-              Select Remote
+      Dim q1 = From Remote In cXmlRemote.<file>
+               Where (Aggregate Local In gxVersion.<file> Into All(Local.<id>.Value <> Remote.<id>.Value))
+               Select Remote
+      Dim q2 = From Remote In cXmlRemote.<file>
+               Join Local In gxVersion.<file> On CInt(Remote.<id>(0)) Equals CInt(Local.<id>(0))
+               Where New Version(Remote.<version>.Value) > New Version(Local.<version>.Value)
+               Select Remote
+      Dim q = q1.Union(q2)
       If q.Any() Then
         Dim sb As New Text.StringBuilder
         sb.AppendLine("检测到以下更新：")
@@ -362,7 +382,7 @@
   Private Sub lstResolution_SelectionChanged(sender As Object, e As SelectionChangedEventArgs)
     txtResolutionWidth.Text = lstResolution.SelectedItem.Split("×")(0)
     txtResolutionHeight.Text = lstResolution.SelectedItem.Split("×")(1)
-    If Integer.Parse(txtResolutionWidth.Text) <800 Then MessageBox.Show("分辨率宽度小于 800 可能会使显示不正常，或者游戏报错。")
+    If Integer.Parse(txtResolutionWidth.Text) < 800 Then MessageBox.Show("分辨率宽度小于 800 可能会使显示不正常，或者游戏报错。")
     If Integer.Parse(txtResolutionHeight.Text) < 600 Then MessageBox.Show("分辨率高度小于 600 可能会使显示不正常，或者游戏报错。")
     Microsoft.Win32.Registry.CurrentUser.CreateSubKey("Software\Microsoft\Microsoft Games\Age of Empires II: The Conquerors Expansion\1.0").SetValue("Screen Width", Integer.Parse(txtResolutionWidth.Text), Microsoft.Win32.RegistryValueKind.DWord)
     Microsoft.Win32.Registry.CurrentUser.CreateSubKey("Software\Microsoft\Microsoft Games\Age of Empires II: The Conquerors Expansion\1.0").SetValue("Screen Height", Integer.Parse(txtResolutionHeight.Text), Microsoft.Win32.RegistryValueKind.DWord)
@@ -629,6 +649,26 @@
       Next
       txbTaunt.Text = "中文"
       gxConfig.<taunt>.Value = "zh"
+    Catch ex As IO.IOException
+      MessageBox.Show(ex.Message)
+    End Try
+    e.Handled = True
+  End Sub
+
+  Public Sub btnTauntElse_Click(sender As Button, e As RoutedEventArgs)
+    Dim Id As Integer = sender.Tag
+    Dim Text = (From x In gxLocalRes.<res>
+                Where CInt(x.<id>(0)) = Id
+                Select x.<title>.Value).SingleOrDefault()
+    Dim Files = (From x In gxLocalRes.<res>
+                 Where CInt(x.<id>(0)) = Id
+                 Select x).SingleOrDefault().<files>(0).<file>
+    Try
+      For Each x In Files
+        IO.File.Copy(gsHawkempirePath & x.Value, IO.Path.Combine(gsHawkempirePath, "taunt", IO.Path.GetFileName(x.Value)), True)
+      Next
+      txbTaunt.Text = Text
+      gxConfig.<taunt>.Value = Id
     Catch ex As IO.IOException
       MessageBox.Show(ex.Message)
     End Try
@@ -1221,6 +1261,8 @@
         p.StartInfo.FileName = IO.Path.Combine(gsHawkempirePath, "games\the conquerors 1.4\scenario")
       Case "fe"
         p.StartInfo.FileName = IO.Path.Combine(gsHawkempirePath, "games\forgotten empires\scenario")
+      Case Else
+        p.StartInfo.FileName = IO.Directory.CreateDirectory(IO.Path.Combine(gtModsInfo.SingleOrDefault(Function(x) x.Title = gxConfig.<aocversion>.Value).Path, "scenario")).FullName
     End Select
     p.Start()
     e.Handled = True
@@ -1236,6 +1278,8 @@
         p.StartInfo.FileName = IO.Path.Combine(gsHawkempirePath, "games\the conquerors 1.4\scenario")
       Case "fe"
         p.StartInfo.FileName = IO.Path.Combine(gsHawkempirePath, "games\forgotten empires\scenario")
+      Case Else
+        p.StartInfo.FileName = IO.Directory.CreateDirectory(IO.Path.Combine(gtModsInfo.SingleOrDefault(Function(x) x.Title = gxConfig.<aocversion>.Value).Path, "scenario")).FullName
     End Select
     p.Start()
     e.Handled = True
@@ -1251,6 +1295,8 @@
         p.StartInfo.FileName = IO.Path.Combine(gsHawkempirePath, "games\the conquerors 1.4\script.ai")
       Case "fe"
         p.StartInfo.FileName = IO.Path.Combine(gsHawkempirePath, "games\forgotten empires\script.ai")
+      Case Else
+        p.StartInfo.FileName = IO.Directory.CreateDirectory(IO.Path.Combine(gtModsInfo.SingleOrDefault(Function(x) x.Title = gxConfig.<aocversion>.Value).Path, "script.ai")).FullName
     End Select
     p.Start()
     e.Handled = True
@@ -1266,6 +1312,8 @@
         p.StartInfo.FileName = IO.Path.Combine(gsHawkempirePath, "games\the conquerors 1.4\savegame")
       Case "fe"
         p.StartInfo.FileName = IO.Path.Combine(gsHawkempirePath, "games\forgotten empires\savegame")
+      Case Else
+        p.StartInfo.FileName = IO.Directory.CreateDirectory(IO.Path.Combine(gtModsInfo.SingleOrDefault(Function(x) x.Title = gxConfig.<aocversion>.Value).Path, "savegame")).FullName
     End Select
     p.Start()
     e.Handled = True
@@ -1281,6 +1329,8 @@
         p.StartInfo.FileName = IO.Path.Combine(gsHawkempirePath, "games\the conquerors 1.4\sound\scenario")
       Case "fe"
         p.StartInfo.FileName = IO.Path.Combine(gsHawkempirePath, "games\forgotten empires\sound\scenario")
+      Case Else
+        p.StartInfo.FileName = IO.Directory.CreateDirectory(IO.Path.Combine(gtModsInfo.SingleOrDefault(Function(x) x.Title = gxConfig.<aocversion>.Value).Path, "sound\scenario")).FullName
     End Select
     p.Start()
     e.Handled = True
@@ -1296,6 +1346,8 @@
         p.StartInfo.FileName = IO.Path.Combine(gsHawkempirePath, "games\the conquerors 1.4\data")
       Case "fe"
         p.StartInfo.FileName = IO.Path.Combine(gsHawkempirePath, "games\forgotten empires\data")
+      Case Else
+        p.StartInfo.FileName = IO.Directory.CreateDirectory(IO.Path.Combine(gtModsInfo.SingleOrDefault(Function(x) x.Title = gxConfig.<aocversion>.Value).Path, "data")).FullName
     End Select
     p.Start()
     e.Handled = True
@@ -1311,6 +1363,8 @@
         p.StartInfo.FileName = IO.Path.Combine(gsHawkempirePath, "games\the conquerors 1.4\script.rm")
       Case "fe"
         p.StartInfo.FileName = IO.Path.Combine(gsHawkempirePath, "games\forgotten empires\script.rm")
+      Case Else
+        p.StartInfo.FileName = IO.Directory.CreateDirectory(IO.Path.Combine(gtModsInfo.SingleOrDefault(Function(x) x.Title = gxConfig.<aocversion>.Value).Path, "script.rm")).FullName
     End Select
     p.Start()
     e.Handled = True
@@ -1326,6 +1380,8 @@
         p.StartInfo.FileName = IO.Path.Combine(gsHawkempirePath, "games\the conquerors 1.4\screenshots")
       Case "fe"
         p.StartInfo.FileName = IO.Path.Combine(gsHawkempirePath, "games\forgotten empires\screenshots")
+      Case Else
+        p.StartInfo.FileName = IO.Directory.CreateDirectory(IO.Path.Combine(gtModsInfo.SingleOrDefault(Function(x) x.Title = gxConfig.<aocversion>.Value).Path, "screenshots")).FullName
     End Select
     p.Start()
     e.Handled = True
@@ -1547,4 +1603,5 @@
     p.Start()
     e.Handled = True
   End Sub
+
 End Class
