@@ -26,7 +26,7 @@
     mtx = New Threading.Mutex(True, NameOf(AocManagerTool), bNewInstance)
     If bNewInstance Then
       IO.Directory.SetCurrentDirectory(AppDomain.CurrentDomain.BaseDirectory)
-      IO.Directory.SetCurrentDirectory("e:\hawkempire\manager\exe")
+      'IO.Directory.SetCurrentDirectory("e:\hawkempire\manager\exe")
 
       If IO.File.Exists("..\..\empires2.exe") Then
         gsManagerPath = IO.Directory.GetParent(IO.Directory.GetCurrentDirectory).FullName
@@ -103,9 +103,9 @@
     Dim bNoException As Boolean = False
     Do
       Try
-        gxLocalRes.Save(IO.Path.Combine(gsManagerPath, "xml\localmods.xml"))
-        gxConfig.Save(IO.Path.Combine(gsManagerPath, "xml\config.xml"))
-        gxVersion.Save(IO.Path.Combine(gsManagerPath, "xml\version3.xml"))
+        gxLocalRes?.Save(IO.Path.Combine(gsManagerPath, "xml\localmods.xml"))
+        gxConfig?.Save(IO.Path.Combine(gsManagerPath, "xml\config.xml"))
+        gxVersion?.Save(IO.Path.Combine(gsManagerPath, "xml\version3.xml"))
         mtx.Close()
         bNoException = True
       Catch ex As IO.IOException
