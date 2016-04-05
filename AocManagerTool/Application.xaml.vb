@@ -69,28 +69,28 @@
         End If
         Dim ConfigElements As New List(Of String) From {"aocversion", "music", "scenariosound", "taunt", "dat_14", "dat_c", "dat_fe", "dat_a", "splash", "language", "holdfastpath", "fixdp"}
         For Each x In ConfigElements
-          If Not gxConfig.Elements(x).Any() Then gxConfig.Add(x)
-        Next
+            If Not gxConfig.Elements(x).Any() Then gxConfig.Add(New XElement(x))
+          Next
 
-        If IO.File.Exists(IO.Path.Combine(gsManagerPath, "xml\version3.xml")) Then
-          Dim bNoException As Boolean = False
-          Do
-            Try
-              gxVersion = XElement.Load(IO.Path.Combine(gsManagerPath, "xml\version3.xml"))
-              bNoException = True
-            Catch ex As IO.IOException
-              MessageBox.Show(ex.Message & "请关闭占用该文件的进程并单击确定。")
-            End Try
-          Loop Until bNoException
+          If IO.File.Exists(IO.Path.Combine(gsManagerPath, "xml\version3.xml")) Then
+            Dim bNoException As Boolean = False
+            Do
+              Try
+                gxVersion = XElement.Load(IO.Path.Combine(gsManagerPath, "xml\version3.xml"))
+                bNoException = True
+              Catch ex As IO.IOException
+                MessageBox.Show(ex.Message & "请关闭占用该文件的进程并单击确定。")
+              End Try
+            Loop Until bNoException
+          Else
+            MessageBox.Show("找不到 HawkEmpire\Manager\xml\version3.xml 配置文件，无法读取程序已更新内容，程序将要全部自动更新。")
+            gxVersion = <HawkEmpire></HawkEmpire>
+          End If
+
+          gwMain = New MainWindow
+          gwMain.Show()
         Else
-          MessageBox.Show("找不到 HawkEmpire\Manager\xml\version3.xml 配置文件，无法读取程序已更新内容，程序将要全部自动更新。")
-          gxVersion = <HawkEmpire></HawkEmpire>
-        End If
-
-        gwMain = New MainWindow
-        gwMain.Show()
-      Else
-        MessageBox.Show("未侦测到帝国时代2。请将本程序置于 HawkEmpire\Manager\exe 目录下重新运行。")
+          MessageBox.Show("未侦测到帝国时代2。请将本程序置于 HawkEmpire\Manager\exe 目录下重新运行。")
         Shutdown()
       End If
     Else

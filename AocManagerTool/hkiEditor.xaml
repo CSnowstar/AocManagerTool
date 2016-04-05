@@ -1,7 +1,7 @@
 ﻿<Window x:Class="hkiEditor"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-    Title="帝国时代热键编辑器" Height="400" Width="600" Icon="logo.ico">
+    Title="帝国时代热键编辑器" Height="400" Width="600" Icon="resource\logo.ico">
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition></RowDefinition>

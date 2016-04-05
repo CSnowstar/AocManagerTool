@@ -554,7 +554,7 @@ SLP 编辑器：可以修改游戏SLP图像。<LineBreak></LineBreak>
                                 <FlowDocument FontFamily="微软雅黑">
                                     <Paragraph>帝国时代管家（Aoc Manager Tool）是飞翔之鹰工作室为广大帝国玩家专门设计的一款游戏管理应用，界面美观，简单实用。它能帮助玩家免去游戏各类复杂的设置，能够轻松进行游戏一键游戏版本切换、更新、联机、作品共享和游戏高级开发等功能。不仅如此，玩家还能及时获取最新的帝国资讯、作品和开发成果。无论您是帝国时代系列的忠实粉丝还是刚刚接触这款经典游戏的新人玩家，帝国时代管家都将为您带来更极致、简单的帝国时代游戏体验！</Paragraph>
                                     <Paragraph TextAlignment="Right">
-                                        <Run Foreground="Brown">当前管家版本：3.1.2</Run> /
+                                        <Run Foreground="Brown">当前管家版本：3.1.3</Run> /
                                         <Hyperlink x:Name="hypChangelog" Click="hypChangelog_Click">软件更新日志</Hyperlink> /
                                         <Hyperlink x:Name="hypAbout" Click="hypAbout_Click">了解制作团队</Hyperlink>
                                     </Paragraph>

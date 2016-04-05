@@ -56,8 +56,13 @@
         Dim TheXml = (From x In ele.<files>.<file>
                       Where x.Value.EndsWith(".xml")
                       Select x.Value).SingleOrDefault()
-        modInfo.Path = IO.Path.Combine(gsHawkempirePath, "Games", XElement.Load(gsHawkempirePath & TheXml).<path>.Value)
-        If Not gtModsInfo.Any(Function(p) p.Id = modInfo.Id) Then gtModsInfo.Add(modInfo)
+        If TheXml Is Nothing Then
+          MessageBox.Show($"资源 {modInfo.Title} 缺少必要文件，请联系该资源的上传者重新规范上传完整文件。")
+          ele.Remove()
+        Else
+          modInfo.Path = IO.Path.Combine(gsHawkempirePath, "Games", XElement.Load(gsHawkempirePath & TheXml).<path>.Value)
+          If Not gtModsInfo.Any(Function(p) p.Id = modInfo.Id) Then gtModsInfo.Add(modInfo)
+        End If
       Next
       lstModOrder.ItemsSource = gtModsInfo
       For Each ele In gtModsInfo
@@ -97,9 +102,12 @@
         {"sk", "斯洛伐克语"},
         {"tr", "土耳其语"}
       }
+      If String.IsNullOrWhiteSpace(gxConfig.<language>.Value) Then gxConfig.<language>.Value = "chs"
       txbLanguage.Text = LanguageCaptionMap(gxConfig.<language>.Value)
 
       Select Case gxConfig.<aocversion>.Value
+        Case ""
+          gxConfig.<aocversion>.Value = "14"
         Case "c"
           txbCurrentVersion.Text = "当前游戏版本：1.0C"
           txbWhichExe.Text = "帝国时代Ⅱ 1.0C"
@@ -170,6 +178,7 @@
         txbTaunt.Text = "英文"
       ElseIf gxConfig.<taunt>.Value = "zh" Then
         txbTaunt.Text = "中文"
+      ElseIf String.IsNullOrWhiteSpace(gxConfig.<taunt>.Value) Then
       Else
         txbTaunt.Text = Taunts.SingleOrDefault(Function(x) CInt(x.<id>(0)) = CInt(gxConfig.<taunt>(0))).<title>.Value
       End If
