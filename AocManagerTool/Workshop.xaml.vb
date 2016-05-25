@@ -214,7 +214,7 @@
           Next
           For Each entry In dic
             Dim drs As drsFile
-            If (ver And 4) = 4 Or (ver And 8) = 8 Or (ver And &H10) = &H10 Then ' Aoc version 1.0, 1.4
+            If (ver And 4) = 4 Or (ver And 8) = 8 Or (ver And &H10) = &H10 Then ' Aoc version 1.0, 1.5
               drs = New drsFile(IO.Path.Combine(gsHawkempirePath, "data", entry.Key))
             ElseIf (ver And &H20) = &H20 Then 'AoFE
               drs = New drsFile(IO.Path.Combine(gsHawkempirePath, "games\forgotten empires\data", entry.Key))
@@ -247,7 +247,7 @@
           Next
           For Each entry In dic
             Dim drsMod, drsOrig As New drsFile
-            If (ver And 4) = 4 Or (ver And 8) = 8 Or (ver And &H10) = &H10 Then ' Aoc version 1.0, 1.4
+            If (ver And 4) = 4 Or (ver And 8) = 8 Or (ver And &H10) = &H10 Then ' Aoc version 1.0, 1.5
               drsMod = New drsFile(IO.Path.Combine(gsHawkempirePath, "data", entry.Key))
               drsOrig = New drsFile(IO.Path.Combine(gsHawkempirePath, "manager\drs", entry.Key))
             ElseIf (ver And &H20) = &H20 Then 'AoFE

@@ -126,7 +126,7 @@
         wc.DownloadFileAsync(New Uri("http://www.hawkaoc.net/hawkclient/age2_x1.0c.exe", UriKind.Absolute), IO.Path.Combine(gsManagerPath, "exe\age2_x1.0c.exe"), "c")
         wc = New Net.WebClient
         AddHandler wc.DownloadFileCompleted, AddressOf WebClient_DownloadFileCompleted
-        wc.DownloadFileAsync(New Uri("http://www.hawkaoc.net/hawkclient/age2_x1.4.exe", UriKind.Absolute), IO.Path.Combine(gsManagerPath, "exe\age2_x1.4.exe"), "4")
+        wc.DownloadFileAsync(New Uri("http://www.hawkaoc.net/hawkclient/age2_x1.5.exe", UriKind.Absolute), IO.Path.Combine(gsManagerPath, "exe\age2_x1.5.exe"), "5")
         wc = New Net.WebClient
         AddHandler wc.DownloadFileCompleted, AddressOf WebClient_DownloadFileCompleted
         wc.DownloadFileAsync(New Uri("http://www.hawkaoc.net/hawkclient/age2_x2.exe", UriKind.Absolute), IO.Path.Combine(gsManagerPath, "exe\age2_x2.exe"), "f")
@@ -143,8 +143,8 @@
       Select Case e.UserState
         Case "c"
           MessageBox.Show("帝国时代 1.0C 主程序下载完成。")
-        Case "4"
-          MessageBox.Show("帝国时代 1.4 主程序下载完成。")
+        Case "5"
+          MessageBox.Show("帝国时代 1.5 主程序下载完成。")
         Case "f"
           MessageBox.Show("被遗忘的帝国 主程序下载完成。")
       End Select

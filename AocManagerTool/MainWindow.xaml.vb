@@ -112,8 +112,8 @@
           txbCurrentVersion.Text = "当前游戏版本：1.0C"
           txbWhichExe.Text = "帝国时代Ⅱ 1.0C"
         Case "14"
-          txbCurrentVersion.Text = "当前游戏版本：1.4"
-          txbWhichExe.Text = "帝国时代Ⅱ 1.4"
+          txbCurrentVersion.Text = "当前游戏版本：1.5"
+          txbWhichExe.Text = "帝国时代Ⅱ 1.5"
         Case "fe"
           txbCurrentVersion.Text = "当前游戏版本：被遗忘的帝国"
           txbWhichExe.Text = "被遗忘的帝国"
@@ -194,11 +194,11 @@
 
     If IO.File.Exists(IO.Path.Combine(gsManagerPath, "xml\version3.xml")) Then
       Dim UPVersion = (From x In gxVersion.<file>
-                       Where x.<id>.Value = "4"
+                       Where x.<id>.Value = "14"
                        Select x.<version>.Value).First()
       txbUPVersion.Text = $"帝国时代主程序版本：{UPVersion}"
       Try
-        Dim FilesToCheck As New List(Of String) From {"age2_x1.0c.exe", "age2_x1.4.exe", "age2_x2.exe"}
+        Dim FilesToCheck As New List(Of String) From {"age2_x1.0c.exe", "age2_x1.5.exe", "age2_x2.exe"}
         Dim MD5s = From x In FilesToCheck
                    Select BitConverter.ToString(
                      (New Security.Cryptography.MD5CryptoServiceProvider).ComputeHash(
@@ -206,7 +206,7 @@
                      Replace("-", "").
                      ToLower()
         Dim q = From x In gxVersion.<file>
-                Where New List(Of String) From {"1", "2", "3"}.Contains(x.<id>.Value)
+                Where New List(Of String) From {"1", "14", "3"}.Contains(x.<id>.Value)
                 Select x.<md5>.Value
         If MD5s.Any(Function(x) Not q.Contains(x)) Then
           MessageBox.Show("检测到帝国时代主程序版本不是最新，版本不同将无法联机游戏。单击确定开始更新。")
@@ -330,7 +330,7 @@
     Try
       Dim ConfigVersionMap As New Dictionary(Of String, String) From {
         {"c", "age2_x1.0c.exe"},
-        {"14", "age2_x1.4.exe"},
+        {"14", "age2_x1.5.exe"},
         {"fe", "age2_x2.exe"}
       }
       Dim FileMd5 As String = BitConverter.ToString(
@@ -876,17 +876,17 @@
     If IsAocStarted() Then
       MessageBox.Show("帝国时代程序已经启动，无法切换。请关闭帝国时代程序后重试。")
     Else
-      If IO.File.Exists("age2_x1.4.exe") Then
+      If IO.File.Exists("age2_x1.5.exe") Then
         Try
-          IO.File.Copy("age2_x1.4.exe", IO.Path.Combine(gsHawkempirePath, "age2_x1\age2_x1.exe"), True)
-          txbCurrentVersion.Text = "当前游戏版本：1.4"
-          txbWhichExe.Text = "帝国时代Ⅱ 1.4"
+          IO.File.Copy("age2_x1.5.exe", IO.Path.Combine(gsHawkempirePath, "age2_x1\age2_x1.exe"), True)
+          txbCurrentVersion.Text = "当前游戏版本：1.5"
+          txbWhichExe.Text = "帝国时代Ⅱ 1.5"
           gxConfig.<aocversion>.Value = "14"
         Catch ex As IO.IOException
           MessageBox.Show(ex.Message)
         End Try
       Else
-        MessageBox.Show("帝国时代 1.4 版本主程序文件不存在，无法切换。")
+        MessageBox.Show("帝国时代 1.5 版本主程序文件不存在，无法切换。")
       End If
     End If
     e.Handled = True
@@ -1062,11 +1062,11 @@
       MessageBox.Show("帝国时代程序已经启动，无法切换。请关闭帝国时代程序后重试。")
     Else
       Try
-        IO.File.Copy("age2_x1.4.exe",
+        IO.File.Copy("age2_x1.5.exe",
                      IO.Path.Combine(gsHawkempirePath, "age2_x1\age2_x1.exe"),
                      True)
-        txbCurrentVersion.Text = "当前游戏版本：1.4"
-        txbWhichExe.Text = "帝国时代Ⅱ 1.4"
+        txbCurrentVersion.Text = "当前游戏版本：1.5"
+        txbWhichExe.Text = "帝国时代Ⅱ 1.5"
         gxConfig.<aocversion>.Value = "14"
         gpGameProc.StartInfo = New ProcessStartInfo(
           "age2_x1.exe",

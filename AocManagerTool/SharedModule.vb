@@ -368,7 +368,7 @@ Public Class VersionConverter
     If (value And 2) = 2 Then ret.Add("AoK")
     If (value And 4) = 4 Then ret.Add("1.0A")
     If (value And 8) = 8 Then ret.Add("1.0C")
-    If (value And &H10) = &H10 Then ret.Add("1.4")
+    If (value And &H10) = &H10 Then ret.Add("1.5")
     If (value And &H20) = &H20 Then ret.Add("AoFE")
     Return Join(ret.ToArray, "/")
   End Function
