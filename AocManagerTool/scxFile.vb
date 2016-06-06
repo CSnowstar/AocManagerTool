@@ -209,7 +209,7 @@
     Public _Name(255) As Byte
     Public Property Name As String
       Get
-        Return _Parent._Encoding.GetString(_Name)
+        Return _Parent._Encoding.GetString(_Name).TrimEnd(vbNullChar)
       End Get
       Set(value As String)
         _Name = _Parent.GetBytesFixed(value, 256)
@@ -224,7 +224,7 @@
     Public _Ai As Byte()
     Public Property Ai As String
       Get
-        Return _Parent._Encoding.GetString(_Ai)
+        Return _Parent._Encoding.GetString(_Ai).TrimEnd(vbNullChar)
       End Get
       Set(value As String)
         _Ai = _Parent._Encoding.GetBytes(value)
@@ -292,7 +292,7 @@
     Public _Name As Byte()
     Public Property Name As String
       Get
-        Return _Parent._Encoding.GetString(_Name)
+        Return _Parent._Encoding.GetString(_Name).TrimEnd(vbNullChar)
       End Get
       Set(value As String)
         _Name = _Parent._Encoding.GetBytes(value)
@@ -334,7 +334,7 @@
     Public _Text As Byte()
     Public Property Text As String
       Get
-        Return _Parent._Encoding.GetString(_Text)
+        Return _Parent._Encoding.GetString(_Text).TrimEnd(vbNullChar)
       End Get
       Set(value As String)
         _Text = _Parent._Encoding.GetBytes(value)
@@ -344,7 +344,7 @@
     Public _SoundFile As Byte()
     Public Property SoundFile As String
       Get
-        Return _Parent._Encoding.GetString(_SoundFile)
+        Return _Parent._Encoding.GetString(_SoundFile).TrimEnd(vbNullChar)
       End Get
       Set(value As String)
         _SoundFile = _Parent._Encoding.GetBytes(value)
@@ -391,7 +391,7 @@
     Public _Description As Byte()
     Public Property Description As String
       Get
-        Return _Parent._Encoding.GetString(_Description)
+        Return _Parent._Encoding.GetString(_Description).TrimEnd(vbNullChar)
       End Get
       Set(value As String)
         _Description = _Parent._Encoding.GetBytes(value)
@@ -401,7 +401,7 @@
     Public _Name As Byte()
     Public Property Name As String
       Get
-        Return _Parent._Encoding.GetString(_Name)
+        Return _Parent._Encoding.GetString(_Name).TrimEnd(vbNullChar)
       End Get
       Set(value As String)
         _Name = _Parent._Encoding.GetBytes(value)
@@ -454,7 +454,7 @@
   Private _Instruction As Byte()
   Public Property Instruction As String
     Get
-      Return _Encoding.GetString(_Instruction)
+      Return _Encoding.GetString(_Instruction).TrimEnd(vbNullChar)
     End Get
     Set(value As String)
       _Instruction = _Encoding.GetBytes(value)
@@ -471,7 +471,7 @@
   Private _OriginalFilename As Byte()
   Public Property OriginalFilename As String
     Get
-      Return _Encoding.GetString(_OriginalFilename)
+      Return _Encoding.GetString(_OriginalFilename).TrimEnd(vbNullChar)
     End Get
     Set(value As String)
       _OriginalFilename = _Encoding.GetBytes(value)
@@ -491,7 +491,7 @@
   Private _StringInfos As New List(Of Byte())(9)
   Public Property StringInfos(ByVal type As InfoType) As String
     Get
-      Return _Encoding.GetString(_StringInfos(type))
+      Return _Encoding.GetString(_StringInfos(type)).TrimEnd(vbNullChar)
     End Get
     Set(value As String)
       _StringInfos(type) = _Encoding.GetBytes(value)
@@ -729,7 +729,8 @@
             Misc(i).Color = dr.ReadInt32()
             dr.ReadBytes(If(dr.ReadSingle() = 2.0F, 8, 0) + dr.ReadInt16() * 44 + 11)
           Next
-          dr.ReadBytes(9)
+          Dim someDouble = dr.ReadDouble()
+          If someDouble = 1.6 Then dr.ReadByte()
           For i As Integer = 0 To dr.ReadInt32() - 1
             Triggers.Add(New Trigger(Me) With {
                       .IsEnabled = dr.ReadInt32(),
@@ -737,7 +738,7 @@
             dr.ReadBytes(1)
             Triggers(i).IsObjective = dr.ReadByte()
             Triggers(i).DescriptionOrder = dr.ReadInt32()
-            dr.ReadBytes(4)
+            If someDouble = 1.6 Then dr.ReadBytes(4)
             Triggers(i)._Description = dr.ReadBytes(dr.ReadInt32())
             Triggers(i)._Name = dr.ReadBytes(dr.ReadInt32())
             For j As Integer = 0 To dr.ReadInt32() - 1
