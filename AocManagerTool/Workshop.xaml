@@ -277,7 +277,7 @@
                         <ColumnDefinition Width="auto"></ColumnDefinition>
                         <ColumnDefinition Width="20"></ColumnDefinition>
                     </Grid.ColumnDefinitions>
-                    <Image x:Name="imgTitle" Grid.Column="0" Width="100" Height="100" Margin="0,0,30,10" Source="{Binding Path=ResType, Converter={StaticResource imageConverter}}" RenderOptions.BitmapScalingMode="HighQuality"></Image>
+                    <Image x:Name="imgTitle" Grid.Column="0" Width="100" Height="100" Margin="0,0,25,10" Source="{Binding Path=ResType, Converter={StaticResource imageConverter}}" RenderOptions.BitmapScalingMode="HighQuality"></Image>
                     <Grid Grid.Column="1">
                         <Grid.RowDefinitions>
                             <RowDefinition Height="*"></RowDefinition>
@@ -286,7 +286,7 @@
                         <TextBlock x:Name="txbWorkshopTitle" Grid.Row="0" Margin="0,5" Text="{Binding Name}" FontSize="30" TextTrimming="WordEllipsis" HorizontalAlignment="Left"></TextBlock>
                         <TextBlock x:Name="txbWorkshopInfo" Grid.Row="1" Margin="0,5" FontSize="14" VerticalAlignment="Bottom" LineHeight="25">
                             <TextBlock.Text>
-                                <MultiBinding StringFormat="作者：{0}   更新时间：{1:d}&#xd;&#xa;大小：{2}   适用版本：{3}    下载量：{4}">
+                                <MultiBinding StringFormat="作者：{0}  更新时间：{1:d}&#xd;&#xa;大小：{2}  适用版本：{3}  下载量：{4}">
                                     <Binding Path="AuthorName"></Binding>
                                     <Binding Path="UpdateDate"></Binding>
                                     <Binding Path="FileSize" Converter="{StaticResource filesizeConverter}"></Binding>
@@ -297,7 +297,7 @@
                         </TextBlock>
                     </Grid>
                     <Button Grid.Column="2" Style="{StaticResource btnSettingStyle}" VerticalAlignment="Center" Tag="{Binding}" Click="btnResForum_Click">进入原帖</Button>
-                    <TextBlock x:Name="txbWorkshopRate" Grid.Column="3" Foreground="DarkGoldenrod" Margin="20,0" FontSize="32" HorizontalAlignment="Right" VerticalAlignment="Center" Text="{Binding Rate,StringFormat={}{0:F1} 分,TargetNullValue=未评分}"></TextBlock>
+                    <TextBlock x:Name="txbWorkshopRate" Grid.Column="3" Foreground="DarkGoldenrod" Margin="15,0" FontSize="32" HorizontalAlignment="Right" VerticalAlignment="Center" Text="{Binding Rate,StringFormat={}{0:F1} 分,TargetNullValue=未评分}"></TextBlock>
                     <Button x:Name="btnResList" Grid.Column="4" Width="80" Height="35" Tag="{Binding}" Style="{StaticResource btnResourceStyle}" VerticalAlignment="Center" Click="btnResList_Click"></Button>
                     <Button x:Name="btnResListMore" Grid.Column="5" Width="26" Height="35" Tag="{Binding}" Style="{StaticResource btnResourceMoreStyle}" VerticalAlignment="Center" Click="btnResListMore_Click"></Button>
                     <ProgressBar x:Name="prb" Grid.Column="4" Grid.ColumnSpan="2" Maximum="100" Visibility="Hidden" Height="35" Value="{Binding Progress}"></ProgressBar>

@@ -26,7 +26,7 @@
     mtx = New Threading.Mutex(True, NameOf(AocManagerTool), bNewInstance)
     If bNewInstance Then
       IO.Directory.SetCurrentDirectory(AppDomain.CurrentDomain.BaseDirectory)
-      IO.Directory.SetCurrentDirectory("e:\hawkempire\manager\exe")
+      'IO.Directory.SetCurrentDirectory("e:\hawkempire\manager\exe")
 
       If IO.File.Exists("..\..\empires2.exe") Then
         gsManagerPath = IO.Directory.GetParent(IO.Directory.GetCurrentDirectory).FullName
@@ -69,28 +69,28 @@
         End If
         Dim ConfigElements As New List(Of String) From {"aocversion", "music", "scenariosound", "taunt", "dat_14", "dat_c", "dat_fe", "dat_a", "splash", "language", "holdfastpath", "fixdp"}
         For Each x In ConfigElements
-          If Not gxConfig.Elements(x).Any() Then gxConfig.Add(x)
-        Next
+            If Not gxConfig.Elements(x).Any() Then gxConfig.Add(New XElement(x))
+          Next
 
-        If IO.File.Exists(IO.Path.Combine(gsManagerPath, "xml\version3.xml")) Then
-          Dim bNoException As Boolean = False
-          Do
-            Try
-              gxVersion = XElement.Load(IO.Path.Combine(gsManagerPath, "xml\version3.xml"))
-              bNoException = True
-            Catch ex As IO.IOException
-              MessageBox.Show(ex.Message & "请关闭占用该文件的进程并单击确定。")
-            End Try
-          Loop Until bNoException
+          If IO.File.Exists(IO.Path.Combine(gsManagerPath, "xml\version3.xml")) Then
+            Dim bNoException As Boolean = False
+            Do
+              Try
+                gxVersion = XElement.Load(IO.Path.Combine(gsManagerPath, "xml\version3.xml"))
+                bNoException = True
+              Catch ex As IO.IOException
+                MessageBox.Show(ex.Message & "请关闭占用该文件的进程并单击确定。")
+              End Try
+            Loop Until bNoException
+          Else
+            MessageBox.Show("找不到 HawkEmpire\Manager\xml\version3.xml 配置文件，无法读取程序已更新内容，程序将要全部自动更新。")
+            gxVersion = <HawkEmpire></HawkEmpire>
+          End If
+
+          gwMain = New MainWindow
+          gwMain.Show()
         Else
-          MessageBox.Show("找不到 HawkEmpire\Manager\xml\version3.xml 配置文件，无法读取程序已更新内容，程序将要全部自动更新。")
-          gxVersion = <HawkEmpire></HawkEmpire>
-        End If
-
-        gwMain = New MainWindow
-        gwMain.Show()
-      Else
-        MessageBox.Show("未侦测到帝国时代2。请将本程序置于 HawkEmpire\Manager\exe 目录下重新运行。")
+          MessageBox.Show("未侦测到帝国时代2。请将本程序置于 HawkEmpire\Manager\exe 目录下重新运行。")
         Shutdown()
       End If
     Else
@@ -103,9 +103,9 @@
     Dim bNoException As Boolean = False
     Do
       Try
-        gxLocalRes.Save(IO.Path.Combine(gsManagerPath, "xml\localmods.xml"))
-        gxConfig.Save(IO.Path.Combine(gsManagerPath, "xml\config.xml"))
-        gxVersion.Save(IO.Path.Combine(gsManagerPath, "xml\version3.xml"))
+        gxLocalRes?.Save(IO.Path.Combine(gsManagerPath, "xml\localmods.xml"))
+        gxConfig?.Save(IO.Path.Combine(gsManagerPath, "xml\config.xml"))
+        gxVersion?.Save(IO.Path.Combine(gsManagerPath, "xml\version3.xml"))
         mtx.Close()
         bNoException = True
       Catch ex As IO.IOException
@@ -126,10 +126,13 @@
         wc.DownloadFileAsync(New Uri("http://www.hawkaoc.net/hawkclient/age2_x1.0c.exe", UriKind.Absolute), IO.Path.Combine(gsManagerPath, "exe\age2_x1.0c.exe"), "c")
         wc = New Net.WebClient
         AddHandler wc.DownloadFileCompleted, AddressOf WebClient_DownloadFileCompleted
-        wc.DownloadFileAsync(New Uri("http://www.hawkaoc.net/hawkclient/age2_x1.4.exe", UriKind.Absolute), IO.Path.Combine(gsManagerPath, "exe\age2_x1.4.exe"), "4")
+        wc.DownloadFileAsync(New Uri("http://www.hawkaoc.net/hawkclient/age2_x1.5.exe", UriKind.Absolute), IO.Path.Combine(gsManagerPath, "exe\age2_x1.5.exe"), "5")
         wc = New Net.WebClient
         AddHandler wc.DownloadFileCompleted, AddressOf WebClient_DownloadFileCompleted
         wc.DownloadFileAsync(New Uri("http://www.hawkaoc.net/hawkclient/age2_x2.exe", UriKind.Absolute), IO.Path.Combine(gsManagerPath, "exe\age2_x2.exe"), "f")
+        wc = New Net.WebClient
+        AddHandler wc.DownloadFileCompleted, AddressOf WebClient_DownloadFileCompleted
+        wc.DownloadFileAsync(New Uri("http://www.hawkaoc.net/hawkclient/age2_wtep.exe", UriKind.Absolute), IO.Path.Combine(gsManagerPath, "exe\age2_wtep.exe"), "w")
       End If
     Else
       gbOnline = False
@@ -143,10 +146,12 @@
       Select Case e.UserState
         Case "c"
           MessageBox.Show("帝国时代 1.0C 主程序下载完成。")
-        Case "4"
-          MessageBox.Show("帝国时代 1.4 主程序下载完成。")
+        Case "5"
+          MessageBox.Show("帝国时代 1.5 主程序下载完成。")
         Case "f"
           MessageBox.Show("被遗忘的帝国 主程序下载完成。")
+        Case "w"
+          MessageBox.Show("WAIFor触发扩展版 主程序下载完成。")
       End Select
     Else
       MessageBox.Show(e.Error.InnerException.Message)

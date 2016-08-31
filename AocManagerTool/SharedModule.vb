@@ -119,6 +119,7 @@ Module SharedModule
     Public Property Id As Integer
     Public Property Title As String
     Public Property Exe As String
+    Public Property Path As String
   End Class
 
   Public Const gcsDirName = "HawkEmpire"
@@ -231,6 +232,7 @@ Public Class ImageConverter
   Implements IValueConverter
 
   Public Function Convert(value As Object, targetType As Type, parameter As Object, culture As CultureInfo) As Object Implements IValueConverter.Convert
+    If value = "tau" Then value = "drs"
     Return New BitmapImage(New Uri($"resource\res{value}.png", UriKind.Relative))
   End Function
 
@@ -366,7 +368,7 @@ Public Class VersionConverter
     If (value And 2) = 2 Then ret.Add("AoK")
     If (value And 4) = 4 Then ret.Add("1.0A")
     If (value And 8) = 8 Then ret.Add("1.0C")
-    If (value And &H10) = &H10 Then ret.Add("1.4")
+    If (value And &H10) = &H10 Then ret.Add("1.5")
     If (value And &H20) = &H20 Then ret.Add("AoFE")
     Return Join(ret.ToArray, "/")
   End Function
@@ -392,7 +394,7 @@ Public Class gcRes
   Private _Status As ResourceStatus
   Private _Progress As Integer
 
-  Public Enum ResourceStatus
+  Public Enum ResourceStatus As Integer
     CanInstall
     CanDelete
     CanStart
