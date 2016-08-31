@@ -130,6 +130,9 @@
         wc = New Net.WebClient
         AddHandler wc.DownloadFileCompleted, AddressOf WebClient_DownloadFileCompleted
         wc.DownloadFileAsync(New Uri("http://www.hawkaoc.net/hawkclient/age2_x2.exe", UriKind.Absolute), IO.Path.Combine(gsManagerPath, "exe\age2_x2.exe"), "f")
+        wc = New Net.WebClient
+        AddHandler wc.DownloadFileCompleted, AddressOf WebClient_DownloadFileCompleted
+        wc.DownloadFileAsync(New Uri("http://www.hawkaoc.net/hawkclient/age2_wtep.exe", UriKind.Absolute), IO.Path.Combine(gsManagerPath, "exe\age2_wtep.exe"), "w")
       End If
     Else
       gbOnline = False
@@ -147,6 +150,8 @@
           MessageBox.Show("帝国时代 1.5 主程序下载完成。")
         Case "f"
           MessageBox.Show("被遗忘的帝国 主程序下载完成。")
+        Case "w"
+          MessageBox.Show("WAIFor触发扩展版 主程序下载完成。")
       End Select
     Else
       MessageBox.Show(e.Error.InnerException.Message)

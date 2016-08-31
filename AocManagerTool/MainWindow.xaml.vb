@@ -117,6 +117,9 @@
         Case "fe"
           txbCurrentVersion.Text = "当前游戏版本：被遗忘的帝国"
           txbWhichExe.Text = "被遗忘的帝国"
+        Case "w"
+          txbCurrentVersion.Text = "当前游戏版本：WAIFor 触发扩展版"
+          txbWhichExe.Text = "WAIFor 触发扩展版"
         Case Else
           Dim CurrentVersion = (From aMod In gxLocalRes.<res>
                                 Where aMod.<title>.Value = gxConfig.<aocversion>.Value
@@ -198,7 +201,7 @@
                        Select x.<version>.Value).First()
       txbUPVersion.Text = $"帝国时代主程序版本：{UPVersion}"
       Try
-        Dim FilesToCheck As New List(Of String) From {"age2_x1.0c.exe", "age2_x1.5.exe", "age2_x2.exe"}
+        Dim FilesToCheck As New List(Of String) From {"age2_x1.0c.exe", "age2_x1.5.exe", "age2_x2.exe", "age2_wtep.exe"}
         Dim MD5s = From x In FilesToCheck
                    Select BitConverter.ToString(
                      (New Security.Cryptography.MD5CryptoServiceProvider).ComputeHash(
@@ -206,7 +209,7 @@
                      Replace("-", "").
                      ToLower()
         Dim q = From x In gxVersion.<file>
-                Where New List(Of String) From {"1", "14", "3"}.Contains(x.<id>.Value)
+                Where New List(Of String) From {"1", "14", "3", "17"}.Contains(x.<id>.Value)
                 Select x.<md5>.Value
         If MD5s.Any(Function(x) Not q.Contains(x)) Then
           MessageBox.Show("检测到帝国时代主程序版本不是最新，版本不同将无法联机游戏。单击确定开始更新。")
@@ -331,7 +334,8 @@
       Dim ConfigVersionMap As New Dictionary(Of String, String) From {
         {"c", "age2_x1.0c.exe"},
         {"14", "age2_x1.5.exe"},
-        {"fe", "age2_x2.exe"}
+        {"fe", "age2_x2.exe"},
+        {"w", "age2_wtep.exe"}
       }
       Dim FileMd5 As String = BitConverter.ToString(
         (New Security.Cryptography.MD5CryptoServiceProvider).ComputeHash(
@@ -1266,7 +1270,7 @@
     Select Case gxConfig.<aocversion>.Value
       Case "c"
         p.StartInfo.FileName = IO.Path.Combine(gsHawkempirePath, "campaign")
-      Case "14"
+      Case "14", "w"
         p.StartInfo.FileName = IO.Path.Combine(gsHawkempirePath, "games\the conquerors 1.4\scenario")
       Case "fe"
         p.StartInfo.FileName = IO.Path.Combine(gsHawkempirePath, "games\forgotten empires\scenario")
@@ -1283,7 +1287,7 @@
     Select Case gxConfig.<aocversion>.Value
       Case "c"
         p.StartInfo.FileName = IO.Path.Combine(gsHawkempirePath, "scenario")
-      Case "14"
+      Case "14", "w"
         p.StartInfo.FileName = IO.Path.Combine(gsHawkempirePath, "games\the conquerors 1.4\scenario")
       Case "fe"
         p.StartInfo.FileName = IO.Path.Combine(gsHawkempirePath, "games\forgotten empires\scenario")
@@ -1300,7 +1304,7 @@
     Select Case gxConfig.<aocversion>.Value
       Case "c"
         p.StartInfo.FileName = IO.Path.Combine(gsHawkempirePath, "ai")
-      Case "14"
+      Case "14", "w"
         p.StartInfo.FileName = IO.Path.Combine(gsHawkempirePath, "games\the conquerors 1.4\script.ai")
       Case "fe"
         p.StartInfo.FileName = IO.Path.Combine(gsHawkempirePath, "games\forgotten empires\script.ai")
@@ -1317,7 +1321,7 @@
     Select Case gxConfig.<aocversion>.Value
       Case "c"
         p.StartInfo.FileName = IO.Path.Combine(gsHawkempirePath, "savegame")
-      Case "14"
+      Case "14", "w"
         p.StartInfo.FileName = IO.Path.Combine(gsHawkempirePath, "games\the conquerors 1.4\savegame")
       Case "fe"
         p.StartInfo.FileName = IO.Path.Combine(gsHawkempirePath, "games\forgotten empires\savegame")
@@ -1334,7 +1338,7 @@
     Select Case gxConfig.<aocversion>.Value
       Case "c"
         p.StartInfo.FileName = IO.Path.Combine(gsHawkempirePath, "sound\scenario")
-      Case "14"
+      Case "14", "w"
         p.StartInfo.FileName = IO.Path.Combine(gsHawkempirePath, "games\the conquerors 1.4\sound\scenario")
       Case "fe"
         p.StartInfo.FileName = IO.Path.Combine(gsHawkempirePath, "games\forgotten empires\sound\scenario")
@@ -1351,7 +1355,7 @@
     Select Case gxConfig.<aocversion>.Value
       Case "c"
         p.StartInfo.FileName = IO.Path.Combine(gsHawkempirePath, "data")
-      Case "14"
+      Case "14", "w"
         p.StartInfo.FileName = IO.Path.Combine(gsHawkempirePath, "games\the conquerors 1.4\data")
       Case "fe"
         p.StartInfo.FileName = IO.Path.Combine(gsHawkempirePath, "games\forgotten empires\data")
@@ -1368,7 +1372,7 @@
     Select Case gxConfig.<aocversion>.Value
       Case "c"
         p.StartInfo.FileName = IO.Path.Combine(gsHawkempirePath, "random")
-      Case "14"
+      Case "14", "w"
         p.StartInfo.FileName = IO.Path.Combine(gsHawkempirePath, "games\the conquerors 1.4\script.rm")
       Case "fe"
         p.StartInfo.FileName = IO.Path.Combine(gsHawkempirePath, "games\forgotten empires\script.rm")
@@ -1385,7 +1389,7 @@
     Select Case gxConfig.<aocversion>.Value
       Case "c"
         p.StartInfo.FileName = IO.Path.Combine(gsHawkempirePath, "screenshots")
-      Case "14"
+      Case "14", "w"
         p.StartInfo.FileName = IO.Path.Combine(gsHawkempirePath, "games\the conquerors 1.4\screenshots")
       Case "fe"
         p.StartInfo.FileName = IO.Path.Combine(gsHawkempirePath, "games\forgotten empires\screenshots")
@@ -1457,8 +1461,8 @@
         btn.Content = CType(wrpStarts.Children(index), Button).Content
         btn.Tag = CType(stpGameList.Children(index), Button).Tag
         AddHandler btn.Click, AddressOf btnGameList_Click
-        stpGameList.Children.RemoveAt(index + 3)
-        stpGameList.Children.Insert(index + 2, btn)
+        stpGameList.Children.RemoveAt(index + 4)
+        stpGameList.Children.Insert(index + 3, btn)
         btn = New Button
         btn.Style = FindResource("btnSettingStyle")
         btn.Content = CType(wrpStarts.Children(index), Button).Content
@@ -1481,8 +1485,8 @@
         btn.Content = CType(wrpStarts.Children(index), Button).Content
         btn.Tag = CType(stpGameList.Children(index), Button).Tag
         AddHandler btn.Click, AddressOf btnGameList_Click
-        stpGameList.Children.RemoveAt(index + 3)
-        stpGameList.Children.Insert(index + 4, btn)
+        stpGameList.Children.RemoveAt(index + 4)
+        stpGameList.Children.Insert(index + 5, btn)
         btn = New Button
         btn.Style = FindResource("btnSettingStyle")
         btn.Content = CType(wrpStarts.Children(index), Button).Content
@@ -1505,8 +1509,8 @@
         btn.Content = CType(wrpStarts.Children(index), Button).Content
         btn.Tag = CType(stpGameList.Children(index), Button).Tag
         AddHandler btn.Click, AddressOf btnGameList_Click
-        stpGameList.Children.RemoveAt(index + 3)
-        stpGameList.Children.Insert(3, btn)
+        stpGameList.Children.RemoveAt(index + 4)
+        stpGameList.Children.Insert(4, btn)
         btn = New Button
         btn.Style = FindResource("btnSettingStyle")
         btn.Content = CType(wrpStarts.Children(index), Button).Content
@@ -1530,8 +1534,8 @@
         btn.Content = CType(wrpStarts.Children(index), Button).Content
         btn.Tag = CType(stpGameList.Children(index), Button).Tag
         AddHandler btn.Click, AddressOf btnGameList_Click
-        stpGameList.Children.RemoveAt(index + 3)
-        stpGameList.Children.Insert(lastIndex + 3, btn)
+        stpGameList.Children.RemoveAt(index + 4)
+        stpGameList.Children.Insert(lastIndex + 4, btn)
         btn = New Button
         btn.Style = FindResource("btnSettingStyle")
         btn.Content = CType(wrpStarts.Children(index), Button).Content
@@ -1601,6 +1605,51 @@
         p.StartInfo.FileName = "http://dz.qq.com/"
       End If
       p.Start()
+    End If
+    e.Handled = True
+  End Sub
+
+  Private Sub btnStartWtep_Click(sender As Object, e As RoutedEventArgs)
+    If IsAocStarted() Then
+      MessageBox.Show("帝国时代程序已经启动，无法切换。请关闭帝国时代程序后重试。")
+    Else
+      Try
+        IO.File.Copy("age2_wtep.exe",
+                     IO.Path.Combine(gsHawkempirePath, "age2_x1\age2_x1.exe"),
+                     True)
+        txbCurrentVersion.Text = "当前游戏版本：WAIFor 触发扩展版"
+        txbWhichExe.Text = "WAIFor 触发扩展版"
+        gxConfig.<aocversion>.Value = "w"
+        gpGameProc.StartInfo = New ProcessStartInfo(
+          "age2_x1.exe",
+          If(txbSplash.Text = "关闭", "nostartup", String.Empty)) With {
+          .WorkingDirectory = IO.Path.Combine(gsHawkempirePath, "age2_x1")}
+        gpGameProc.Start()
+      Catch ex As IO.FileNotFoundException
+        MessageBox.Show(ex.Message)
+      Catch ex As IO.IOException
+        MessageBox.Show(ex.Message)
+      End Try
+    End If
+    e.Handled = True
+  End Sub
+
+  Private Sub btnSwitchToWtep_Click(sender As Object, e As RoutedEventArgs)
+    If IsAocStarted() Then
+      MessageBox.Show("帝国时代程序已经启动，无法切换。请关闭帝国时代程序后重试。")
+    Else
+      If IO.File.Exists("age2_wtep.exe") Then
+        Try
+          IO.File.Copy("age2_wtep.exe", IO.Path.Combine(gsHawkempirePath, "age2_x1\age2_x1.exe"), True)
+          txbCurrentVersion.Text = "当前游戏版本：WAIFor 触发扩展版"
+          txbWhichExe.Text = "WAIFor 触发扩展版"
+          gxConfig.<aocversion>.Value = "w"
+        Catch ex As IO.IOException
+          MessageBox.Show(ex.Message)
+        End Try
+      Else
+        MessageBox.Show("WAIFor 触发扩展版 版本主程序文件不存在，无法切换。")
+      End If
     End If
     e.Handled = True
   End Sub
